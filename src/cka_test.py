@@ -75,7 +75,7 @@ if __name__=="__main__":
     N = 150
     all_X = []
     for i in range(N):
-        all_X.append(np.random.randn(100, 64))
+        all_X.append(np.random.randn(64, 32))
 
     #pool = mp.Pool(mp.cpu_count())
     #pool.close()
