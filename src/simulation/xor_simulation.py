@@ -1,5 +1,4 @@
 from .simulator import Simulator
-from util import binarize_sequence
 
 
 class XORSimulator(Simulator):
@@ -11,10 +10,14 @@ class XORSimulator(Simulator):
             
     def simulate(self, genome_id, genome, neural_network, generation):
 
+        all_activations = None
+        if self.CKA is not None:
+            all_activations = []
+
         sequence = None
         if self.hamming is not None:
             sequence = []
-            
+
         task_performance = 4.0
 
         for xor_input, xor_output in zip(self.xor_inputs, self.xor_outputs):
@@ -24,7 +27,12 @@ class XORSimulator(Simulator):
 
             # save sequence if using hamming distance
             if self.hamming is not None:
-                bin_sequence = binarize_sequence([*xor_input, *network_output])
+                bin_sequence = self._binarize_sequence([*xor_input, *network_output])
                 sequence.extend(bin_sequence)
 
-        return [task_performance, sequence]
+            # append activations if using CKA
+            if self.CKA is not None:
+                all_activations.append(activations)
+
+        # [performance, hamming, Q, CKA]
+        return [task_performance, sequence, None, all_activations]

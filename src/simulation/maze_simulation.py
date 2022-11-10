@@ -5,7 +5,6 @@ from simulation.simulator import Simulator
 from simulation.environments.maze.maze_environment import read_environment
 from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
 from simulation.environments.maze.geometry import Point
-from util import binarize_sequence
 
 
 class MazeSimulator(Simulator):
@@ -24,10 +23,10 @@ class MazeSimulator(Simulator):
     def simulate(self, genome_id, genome, neural_network, generation):
 
         maze = copy.deepcopy(self.env)
-        task_performance, sequence = self.maze_simulation_evaluate(env=maze,
-                                                                   genome=genome,
-                                                                   net=neural_network,
-                                                                   time_steps=self.MAX_TIME_STEPS)
+        task_performance, sequence, all_activations = self.maze_simulation_evaluate(env=maze,
+                                                                                    genome=genome,
+                                                                                    net=neural_network,
+                                                                                    time_steps=self.MAX_TIME_STEPS)
 
         record = AgentRecord(generation=generation, agent_id=genome_id)
         record.distance = task_performance
@@ -37,7 +36,8 @@ class MazeSimulator(Simulator):
         record.species_id = 1
         self.history.add_record(record)
 
-        return [task_performance, sequence]
+        # [performance, hamming, Q, CKA]
+        return [task_performance, self._binarize_sequence(sequence), None, all_activations]
 
     def maze_simulation_evaluate(self, env, genome, net, time_steps, path_points=None):
         """
@@ -56,6 +56,10 @@ class MazeSimulator(Simulator):
             the end of simulation.
         """
 
+        all_activations = None
+        if self.CKA is not None:
+            all_activations = []
+
         sequence = None
         if self.hamming is not None:
             sequence = []
@@ -68,8 +72,12 @@ class MazeSimulator(Simulator):
 
             # save sequence if using hamming distance
             if self.hamming is not None:
-                bin_sequence = binarize_sequence([*network_inputs, *network_output])
+                bin_sequence = self._binarize_sequence([*network_inputs, *network_output])
                 sequence.extend(bin_sequence)
+
+            # append activations if using CKA
+            if self.CKA is not None:
+                all_activations.append(activations)
 
             if exit_found:
                 print("Maze solved in %d steps" % (i + 1))
@@ -91,7 +99,7 @@ class MazeSimulator(Simulator):
             distance_to_exit = env.agent_distance_to_exit()
             fitness = (env.initial_distance - distance_to_exit) / env.initial_distance
 
-        return fitness, sequence
+        return fitness, sequence, all_activations
 
     @staticmethod
     def novelty_metric(first_item, second_item):

@@ -51,6 +51,9 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# checkpoints
+*.pickle
+
 # Translations
 *.mo
 *.pot

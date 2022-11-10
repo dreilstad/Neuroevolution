@@ -4,7 +4,8 @@ import graphviz
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import Delaunay
-
+from scipy.spatial._qhull import QhullError
+#from celluloid import Camera
 
 def plot_stats(statistics, filename, ylog=False, view=False):
     """ Plots the population's average and best fitness. """
@@ -16,6 +17,7 @@ def plot_stats(statistics, filename, ylog=False, view=False):
     best_fitness = [c.fitness for c in statistics.most_fit_genomes]
     avg_fitness = np.array(statistics.get_fitness_mean())
     stdev_fitness = np.array(statistics.get_fitness_stdev())
+
 
     plt.plot(generation, avg_fitness, 'b-', label="average")
     # plt.plot(generation, avg_fitness - stdev_fitness, 'g-.', label="-1 sd")
@@ -44,6 +46,8 @@ def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, mi
     fig, ax = plt.subplots(figsize = (10,5))
     ax.set_title(domain + " - Solution Space")
 
+    #camera = Camera(fig)
+
     if (invert):
         ax.set_xlabel(label1)
         ax.set_ylabel(label0)
@@ -62,17 +66,28 @@ def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, mi
         else:
             ax.scatter(x, y, s=3, c=color)
         # triangulation
-        tri = Delaunay(list(zip(y,x)))
+        try:
+            tri = Delaunay(list(zip(y,x)))
+        except QhullError:
+            break
+
         for t in tri.simplices:
             x = [gen[i].values[0] if (gen[i].values[0] < max0) else max0 for i in t]
             y = [gen[i].values[1] if (gen[i].values[1] < max1) else max1 for i in t]
             ax.fill(y, x, linewidth=0.2, c=color, alpha=0.05)
+
+        #camera.snap()
 
     x = [f.values[0] if (f.values[0] < max0) else max0 for f in bests]
     y = [f.values[1] if (f.values[1] < max1) else max1 for f in bests]
     ax.plot(y, x, linewidth=1, c="#000000", label="best genome")
 
     ax.legend()
+
+    #camera.snap()
+    #animation = camera.animate(blit=False, interval=5)
+    #animation.save("pareto_front.gif")
+
 
     plt.tight_layout()
     plt.savefig(filename, format="png", dpi=300)
@@ -121,3 +136,11 @@ def draw_net(net, filename, node_names={}, node_colors={}):
     dot.render(filename)
 
     return dot
+
+if __name__=="__main__":
+    from util import load_checkpoints
+    check = load_checkpoints("/Users/didrik/Documents/Master/Neuroevolution/src/checkpoints/retina/008")
+    save_file = "/Users/didrik/Documents/Master/Neuroevolution/src/results/plots/retina/008/pareto_front.png"
+    plot_pareto_2d(check, save_file, "Retina",
+                             "Task Performance", "Hamming Distance",
+                             500.0, 10000.0)

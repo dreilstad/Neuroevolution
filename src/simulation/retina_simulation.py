@@ -1,4 +1,3 @@
-from util import binarize_sequence
 from simulation.simulator import Simulator
 from simulation.environments.retina.retina_environment import RetinaEnvironment, Side
 from objectives.novelty import NoveltyItem
@@ -12,7 +11,13 @@ class RetinaSimulator(Simulator):
         self.env = RetinaEnvironment()
 
     def simulate(self, genome_id, genome, neural_network, generation):
+
+        #print(f"process_id: {multiprocessing.current_process()}, genome_id: {genome_id}")
         error_sum = 0.0
+
+        all_activations = None
+        if self.CKA is not None:
+            all_activations = []
 
         sequence = None
         if self.hamming is not None:
@@ -27,22 +32,28 @@ class RetinaSimulator(Simulator):
         # at correct and incorrect sides of retina
         for left in self.env.visual_objects:
             for right in self.env.visual_objects:
-                error, network_input, network_output = RetinaSimulator._evaluate(neural_network, left, right)
+                error, net_input, net_output, activations = RetinaSimulator._evaluate(neural_network, left, right)
                 error_sum += error
 
                 # save sequence if using hamming distance
                 if self.hamming is not None:
-                    bin_sequence = binarize_sequence([*network_input, *network_output])
+                    bin_sequence = self._binarize_sequence([*net_input, *net_output])
                     sequence.extend(bin_sequence)
 
                 # add to novelty item if using behavioural diversity
                 if self.novelty is not None:
-                    nov_item.data.extend(network_output)
+                    nov_item.data.extend(net_output)
+
+                # append activations if using CKA
+                if self.CKA is not None:
+                    all_activations.append(activations)
+
         
         # calculate the task performance score
         task_performance = 1.0 - float(error_sum/256.0)
 
-        return [task_performance, sequence]
+        # [performance, hamming, Q, CKA]
+        return [task_performance, sequence, None, all_activations]
 
     @staticmethod
     def _evaluate(neural_network, left, right):
@@ -71,7 +82,7 @@ class RetinaSimulator(Simulator):
         error = (network_output[0] - targets[0]) * (network_output[0] - targets[0]) + \
                 (network_output[1] - targets[1]) * (network_output[1] - targets[1])
 
-        return error, inputs, network_output
+        return error, inputs, network_output, activations
 
     @staticmethod
     def novelty_metric(first_item, second_item):
@@ -90,5 +101,3 @@ class RetinaSimulator(Simulator):
 
         return diff_accum / float(size)
 
-if __name__=="__main__":
-    r = RetinaSimulator("fitness")

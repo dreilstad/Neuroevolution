@@ -12,21 +12,15 @@ class Hamming:
         return self.hamming[key]
 
     def assign_hamming_distances(self, genomes):
-        distances = {}
-        for genome_A, genome_B in combinations(genomes, 2):
-            dist = Hamming.hamming_distance(self.sequences[genome_A[0]], self.sequences[genome_B[0]])
-            try:
-                distances[genome_A[0]] += dist
-            except KeyError:
-                distances[genome_A[0]] = dist
-
-            try:
-                distances[genome_B[0]] += dist
-            except KeyError:
-                distances[genome_B[0]] = dist
+        distances = {genome_id: 0.0 for genome_id, _ in genomes}
+        for (genome_A_id, genome_A), (genome_B_id, genome_B) in combinations(genomes, 2):
+            dist = Hamming.hamming_distance(self.sequences[genome_A_id], self.sequences[genome_B_id])
+            distances[genome_A_id] += dist
+            distances[genome_B_id] += dist
 
         # divide by pop_size - 1
-        self.hamming = {key: value / (len(genomes) - 1) for key, value in distances.items()}
+        num_other_genomes = (len(genomes) - 1)
+        self.hamming = {key: value / num_other_genomes for key, value in distances.items()}
 
     @staticmethod
     def hamming_distance(theta_1, theta_2):

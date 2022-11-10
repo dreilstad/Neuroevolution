@@ -1,7 +1,7 @@
 import numpy as np
 import gym
 from simulation.simulator import Simulator
-from util import binarize_sequence
+
 
 class BipedalWalkerSimulator(Simulator):
 
@@ -13,6 +13,10 @@ class BipedalWalkerSimulator(Simulator):
 
     def simulate(self, genome_id, genome, neural_network, generation):
         self.env.reset()
+
+        all_activations = None
+        if self.CKA is not None:
+            all_activations = []
 
         sequence = None
         if self.hamming is not None:
@@ -40,7 +44,12 @@ class BipedalWalkerSimulator(Simulator):
 
             # save sequence if using hamming distance
             if self.hamming is not None:
-                bin_sequence = binarize_sequence([*state, *action])
+                bin_sequence = self._binarize_sequence([*state, *action])
                 sequence.extend(bin_sequence)
 
-        return [task_performance, sequence]
+            # append activations if using CKA
+            if self.CKA is not None:
+                all_activations.append(activations)
+
+        # [performance, hamming, Q, CKA]
+        return [task_performance, sequence, None, all_activations]

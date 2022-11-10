@@ -40,7 +40,7 @@ def validate_domain(domain):
     return simulators[domain]
 
 def validate_objectives(objectives):
-    valid_objectives = ["performance", "hamming", "beh_div", "mod_div", "Q", "CKA"]
+    valid_objectives = ["performance", "hamming", "beh_div", "mod_div", "Q", "linear_cka", "rbf_cka"]
     for objective in objectives:
         if objective not in valid_objectives:
             raise RuntimeError(f"Objective '{objective}' is not valid")
@@ -78,18 +78,20 @@ def load_checkpoints(folder):
     return checkpoints
 
 
-def make_new_run_folders(domain):
+def make_new_run_folders(domain, objectives):
     local_dir = os.path.dirname(os.path.realpath(__file__))
 
+    objectives_string = "-".join(objectives)
+
     # result dirs
-    results_data_dir = os.path.join(local_dir, f"results/data/{domain}/")
+    results_data_dir = os.path.join(local_dir, f"results/data/{domain}/{objectives_string}")
     results_data_dir_path = make_new_run_folder(results_data_dir)
 
-    results_plot_dir = os.path.join(local_dir, f"results/plots/{domain}/")
+    results_plot_dir = os.path.join(local_dir, f"results/plots/{domain}/{objectives_string}")
     results_plot_dir_path = make_new_run_folder(results_plot_dir)
 
     # checkpoint dirs
-    checkpoint_dir = os.path.join(local_dir, f"checkpoints/{domain}/")
+    checkpoint_dir = os.path.join(local_dir, f"checkpoints/{domain}/{objectives_string}")
     checkpoint_dir_path = make_new_run_folder(checkpoint_dir)
 
     return results_data_dir_path, results_plot_dir_path, checkpoint_dir_path
@@ -113,13 +115,3 @@ def make_new_run_folder(dir_path):
         os.makedirs(new_run_dir)
 
     return new_run_dir
-
-def binarize_sequence(sequence):
-    theta = np.zeros(len(sequence), dtype=int)
-
-    # binarize values and add to theta
-    for i, value in enumerate(sequence):
-        if value >= 0.5:
-            theta[i] = 1
-
-    return theta

@@ -1,6 +1,6 @@
 import os
 import multiprocessing
-
+import numpy as np
 import neat
 import visualize
 from neat.nsga2 import NSGA2Reproduction
@@ -17,17 +17,14 @@ class Neuroevolution:
         self.num_generations = num_generations
         self.evaluator = evaluator
 
-        reproduction = neat.DefaultReproduction
-        if len(objectives) > 1:
-            reproduction = NSGA2Reproduction
-
-        self.neat_config = neat.Config(neat.DefaultGenome, reproduction, 
+        self.neat_config = neat.Config(neat.DefaultGenome, NSGA2Reproduction,
                                        neat.DefaultSpeciesSet, neat.NoStagnation,
                                        self.config_file)
 
         self.pop = neat.Population(self.neat_config)
 
-        self.results_data_path, self.results_plot_path, self.checkpoint_path = make_new_run_folders(self.domain)
+        self.results_data_path, self.results_plot_path, self.checkpoint_path = make_new_run_folders(self.domain,
+                                                                                                    self.objectives)
         self.init_reporters_and_checkpoints()
 
     def init_reporters_and_checkpoints(self):
@@ -40,7 +37,7 @@ class Neuroevolution:
 
     def run(self):
         if self.evaluator is not None:
-            evaluator = self.evaluator(multiprocessing.cpu_count(), self.simulator)
+            evaluator = self.evaluator(6, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate, n=self.num_generations)
         else:
             best_genome = self.pop.run(self.simulator.evaluate_genomes, n=self.num_generations)
@@ -55,13 +52,16 @@ class Neuroevolution:
             self.simulator.history.dump(record_store_save_file)
 
         # save fitness
-        fitness_save_file = os.path.join(self.results_data_path, "best_and_mean_fitness_data.csv")
-        self.stats.save_genome_fitness(delimiter=",", filename=fitness_save_file)
+        #fitness_save_file = os.path.join(self.results_data_path, "best_and_mean_fitness_data.dat")
+        #self.stats.save_genome_fitness(delimiter=",", filename=fitness_save_file)
+        self.save_genome_fitness(self.results_data_path)
 
     def visualize_stats(self, winner_genome):
         labels = {"performance":"Task Performance",
                   "hamming":"Hamming Distance",
-                  "beh_div":"Behavioural Diversity"}
+                  "beh_div":"Behavioural Diversity (ad hoc)",
+                  "linear_cka":"Linear CKA",
+                  "rbf_cka":"RBF CKA"}
 
         print('\nBest genome:\n{!s}'.format(winner_genome))
         winner_net = neat.nn.FeedForwardNetwork.create(winner_genome, self.neat_config)
@@ -80,16 +80,35 @@ class Neuroevolution:
         if self.domain == "xor":
             visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "XOR",
                                      labels[self.objectives[0]], labels[self.objectives[1]],
-                                     4.0, 10.0)
+                                     4.0, 10000.0)
         elif self.domain == "retina":
             visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Retina",
                                      labels[self.objectives[0]], labels[self.objectives[1]],
-                                     1.0, 500.0)
+                                     1.0, 10000.0)
         elif self.domain == "mazerobot":
             visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Mazerobot",
                                      labels[self.objectives[0]], labels[self.objectives[1]],
-                                     13.5, 500.0)
+                                     13.5, 10000.0)
         elif self.domain == "bipedal":
             visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "BipedalWalker",
                                      labels[self.objectives[0]], labels[self.objectives[1]],
                                      500.0, 10000.0)
+
+    def save_genome_fitness(self, save_path):
+        run_number = os.path.basename(os.path.normpath(save_path))
+        generation = range(len(self.stats.most_fit_genomes))
+
+        best_fitness = [c.fitness.values[0] for c in self.stats.most_fit_genomes]
+        with open(os.path.join(self.results_data_path, f"best_fitness_{run_number}.dat"), "w") as f:
+            for gen, fitness in zip(generation, best_fitness):
+                f.write(f"{gen} {fitness}\n")
+
+        avg_fitness = np.array(self.stats.get_fitness_mean())
+        with open(os.path.join(self.results_data_path, f"mean_fitness_{run_number}.dat"), "w") as f:
+            for gen, fitness in zip(generation, avg_fitness):
+                f.write(f"{gen} {fitness}\n")
+
+        stdev_fitness = np.array(self.stats.get_fitness_stdev())
+        with open(os.path.join(self.results_data_path, f"stdev_fitness_{run_number}.dat"), "w") as f:
+            for gen, fitness in zip(generation, stdev_fitness):
+                f.write(f"{gen} {fitness}\n")
