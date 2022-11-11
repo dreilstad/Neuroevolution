@@ -3,7 +3,8 @@ import os
 import graphviz
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.spatial import Delaunay, QhullError
+from scipy.spatial import Delaunay
+from scipy.spatial.qhull import QhullError
 #from celluloid import Camera
 
 def plot_stats(statistics, filename, ylog=False, show=False):
