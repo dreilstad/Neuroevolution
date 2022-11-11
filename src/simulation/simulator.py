@@ -61,7 +61,7 @@ class Simulator:
         if self.Q is not None:
             pass
         if self.CKA is not None:
-            self.CKA.calculate_CKA_similarities(genomes)
+            self.CKA.calculate_CKA_similarities_parallel(genomes)
 
         # assign fitness values
         for genome_id, genome in genomes:
