@@ -9,12 +9,13 @@ from util import clear_checkpoints, load_checkpoints, make_new_run_folders
 
 class Neuroevolution:
 
-    def __init__(self, domain, simulator, objectives, config_file, num_generations, evaluator=None):
+    def __init__(self, domain, simulator, objectives, config_file, num_generations, show, evaluator=None):
         self.domain = domain
         self.objectives = objectives
         self.simulator = simulator(self.objectives)
         self.config_file = config_file
         self.num_generations = num_generations
+        self.show = show
         self.evaluator = evaluator
 
         self.neat_config = neat.Config(neat.DefaultGenome, NSGA2Reproduction,
@@ -72,7 +73,7 @@ class Neuroevolution:
 
         # plot stats
         plot_stats_save_file = os.path.join(self.results_plot_path, "avg_fitness.png")
-        visualize.plot_stats(self.stats, plot_stats_save_file, ylog=False, view=True)
+        visualize.plot_stats(self.stats, plot_stats_save_file, ylog=False, show=self.show)
 
         # plot pareto front
         checkpoints = load_checkpoints(self.checkpoint_path)
@@ -80,19 +81,19 @@ class Neuroevolution:
         if self.domain == "xor":
             visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "XOR",
                                      labels[self.objectives[0]], labels[self.objectives[1]],
-                                     4.0, 10000.0)
+                                     4.0, 10000.0, show=self.show)
         elif self.domain == "retina":
             visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Retina",
                                      labels[self.objectives[0]], labels[self.objectives[1]],
-                                     1.0, 10000.0)
+                                     1.0, 10000.0, show=self.show)
         elif self.domain == "mazerobot":
             visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Mazerobot",
                                      labels[self.objectives[0]], labels[self.objectives[1]],
-                                     13.5, 10000.0)
+                                     13.5, 10000.0, show=self.show)
         elif self.domain == "bipedal":
             visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "BipedalWalker",
                                      labels[self.objectives[0]], labels[self.objectives[1]],
-                                     500.0, 10000.0)
+                                     500.0, 10000.0, show=self.show)
 
     def save_genome_fitness(self, save_path):
         run_number = os.path.basename(os.path.normpath(save_path))

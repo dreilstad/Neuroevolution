@@ -7,7 +7,7 @@ from scipy.spatial import Delaunay
 from scipy.spatial._qhull import QhullError
 #from celluloid import Camera
 
-def plot_stats(statistics, filename, ylog=False, view=False):
+def plot_stats(statistics, filename, ylog=False, show=False):
     """ Plots the population's average and best fitness. """
     if plt is None:
         warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
@@ -33,13 +33,13 @@ def plot_stats(statistics, filename, ylog=False, view=False):
         plt.gca().set_yscale('symlog')
 
     plt.savefig(filename, format="png", dpi=300)
-    if view:
+    if show:
         plt.show()
 
     plt.close()
 
 
-def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, min=0, max=-1, invert=True):
+def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, min=0, max=-1, invert=True, show=False):
     fitnesses = [[f.fitness for _, f in c.population.items()] for c in checkpoints[min:max]]
     bests = [c.best_genome.fitness for c in checkpoints[min:max]]
 
@@ -91,7 +91,9 @@ def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, mi
 
     plt.tight_layout()
     plt.savefig(filename, format="png", dpi=300)
-    plt.show()
+    if show:
+        plt.show()
+
     plt.close()
 
 def draw_net(net, filename, node_names={}, node_colors={}):

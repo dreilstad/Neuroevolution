@@ -4,11 +4,11 @@ from util import validate_input, load_checkpoints
 import neat
 
 
-def main(domain, simulator, objectives, config_file, num_generations):
+def main(domain, simulator, objectives, config_file, num_generations, show):
     evaluator = None
     #evaluator = neat.MultiObjectiveParallelEvaluator
     ne = Neuroevolution(domain, simulator, objectives, config_file,
-                        num_generations=num_generations, evaluator=evaluator)
+                        num_generations, show, evaluator=evaluator)
     winner = ne.run()
     ne.visualize_stats(winner)
     ne.save_stats()
@@ -37,12 +37,17 @@ if __name__=="__main__":
                         required=True,
                         help="List of objectives to use")
 
+    parser.add_argument("-s", "--show",
+                        action="store_true",
+                        help="Shows plots if flag is present")
+
     args = parser.parse_args()
 
     print(args.domain)
     print(args.config_file)
     print(args.objectives)
+    print(args.show)
 
     simulator, config, objectives, num_generations = validate_input(args)
 
-    main(args.domain, simulator, objectives, config, num_generations)
+    main(args.domain, simulator, objectives, config, num_generations, args.show)
