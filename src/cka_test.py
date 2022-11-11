@@ -55,20 +55,19 @@ def kernel_CKA(X, Y, sigma=None):
     return hsic / (var1 * var2)
 
 def sequential(all_X):
-    jobs = []
     for X, Y in combinations(all_X, 2):
-        print('Linear CKA, between X and Y: {}'.format(linear_CKA(X, Y)))
+        linear_CKA(X, Y)
 
 
 
 def parallel(all_X, pool):
     jobs = []
     for X, Y in combinations(all_X, 2):
-        jobs.append(pool.apply_async(linear_HSIC, (X, Y)))
+        jobs.append(pool.apply_async(linear_CKA, (X, Y)))
         #print('Linear CKA, between X and Y: {}'.format(linear_CKA(X, Y)))
 
     for job in jobs:
-        print('Linear CKA, between X and Y: {}'.format(job.get(timeout=None)))
+        job.get(timeout=None)
 
 if __name__=="__main__":
 
@@ -80,9 +79,9 @@ if __name__=="__main__":
     #pool = mp.Pool(mp.cpu_count())
     #pool.close()
 
-
+    print(mp.cpu_count())
     start = time.time()
-    with mp.Pool(mp.cpu_count()) as pool:
+    with mp.Pool(mp.cpu_count()//2) as pool:
         parallel(all_X, pool)
     parallel_time = time.time() - start
 
