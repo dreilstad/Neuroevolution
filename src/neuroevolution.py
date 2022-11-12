@@ -96,6 +96,8 @@ class Neuroevolution:
                                          labels[self.objectives[0]], labels[self.objectives[1]],
                                          500.0, 10000.0, show=self.show)
 
+        clear_checkpoints(self.checkpoint_path, save_last=True)
+
     def save_genome_fitness(self, save_path):
         run_number = os.path.basename(os.path.normpath(save_path))
         generation = range(len(self.stats.most_fit_genomes))

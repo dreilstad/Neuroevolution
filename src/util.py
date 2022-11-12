@@ -47,9 +47,14 @@ def validate_objectives(objectives):
 
     return objectives
 
-def clear_checkpoints(path):
+def clear_checkpoints(path, save_last=False):
     checkpoint_path = os.path.join(path, "*.pickle")
-    for f in glob.glob(checkpoint_path):
+
+    files = sorted(glob.glob(checkpoint_path))
+    if save_last:
+        files = files[:-1]
+
+    for f in files:
         os.remove(f)
 
 def load_checkpoints(folder):

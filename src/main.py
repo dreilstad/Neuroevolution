@@ -7,7 +7,7 @@ def main(domain, simulator, objectives, config_file, num_generations, show):
     evaluator = None
     #evaluator = neat.MultiObjectiveParallelEvaluator
 
-    num_experiments = 50
+    num_experiments = 5
     for _ in range(num_experiments):
         ne = Neuroevolution(domain, simulator, objectives, config_file,
                             num_generations, show, evaluator=evaluator)
