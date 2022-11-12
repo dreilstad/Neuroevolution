@@ -24,19 +24,19 @@ class Neuroevolution:
 
         self.pop = neat.Population(self.neat_config)
 
-        self.results_data_path, self.results_plot_path, self.checkpoint_path = make_new_run_folders(self.domain,
-                                                                                                    self.objectives)
-        self.init_reporters_and_checkpoints()
-
     def init_reporters_and_checkpoints(self):
 
         self.stats = neat.StatisticsReporter()
         self.pop.add_reporter(self.stats)
         self.pop.add_reporter(neat.StdOutReporter(False))
-        self.pop.add_reporter(neat.Checkpointer(generation_interval=5,
+        self.pop.add_reporter(neat.Checkpointer(generation_interval=1,
                                                 filename_prefix=os.path.join(self.checkpoint_path, "gen_")))
 
     def run(self):
+        self.results_data_path, self.results_plot_path, self.checkpoint_path = make_new_run_folders(self.domain,
+                                                                                                    self.objectives)
+        self.init_reporters_and_checkpoints()
+
         if self.evaluator is not None:
             evaluator = self.evaluator(6, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate, n=self.num_generations)

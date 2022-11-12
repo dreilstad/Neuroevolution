@@ -6,12 +6,11 @@ from util import validate_input
 def main(domain, simulator, objectives, config_file, num_generations, show):
     evaluator = None
     #evaluator = neat.MultiObjectiveParallelEvaluator
-    ne = Neuroevolution(domain, simulator, objectives, config_file,
-                        num_generations, show, evaluator=evaluator)
 
     num_experiments = 50
-    #num_experiments = 1
     for _ in range(num_experiments):
+        ne = Neuroevolution(domain, simulator, objectives, config_file,
+                            num_generations, show, evaluator=evaluator)
         winner = ne.run()
         ne.visualize_stats(winner)
         ne.save_stats()
