@@ -52,7 +52,7 @@ class Neuroevolution:
             record_store_save_file = os.path.join(self.results_data_path, "agent_record_data.pickle")
             self.simulator.history.dump(record_store_save_file)
 
-        # save fitness
+        # save fitness=
         #fitness_save_file = os.path.join(self.results_data_path, "best_and_mean_fitness_data.dat")
         #self.stats.save_genome_fitness(delimiter=",", filename=fitness_save_file)
         self.save_genome_fitness(self.results_data_path)
@@ -76,24 +76,25 @@ class Neuroevolution:
         visualize.plot_stats(self.stats, plot_stats_save_file, ylog=False, show=self.show)
 
         # plot pareto front
-        checkpoints = load_checkpoints(self.checkpoint_path)
-        plot_pareto_front_file = os.path.join(self.results_plot_path, f"pareto_front.png")
-        if self.domain == "xor":
-            visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "XOR",
-                                     labels[self.objectives[0]], labels[self.objectives[1]],
-                                     4.0, 10000.0, show=self.show)
-        elif self.domain == "retina":
-            visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Retina",
-                                     labels[self.objectives[0]], labels[self.objectives[1]],
-                                     1.0, 10000.0, show=self.show)
-        elif self.domain == "mazerobot":
-            visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Mazerobot",
-                                     labels[self.objectives[0]], labels[self.objectives[1]],
-                                     13.5, 10000.0, show=self.show)
-        elif self.domain == "bipedal":
-            visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "BipedalWalker",
-                                     labels[self.objectives[0]], labels[self.objectives[1]],
-                                     500.0, 10000.0, show=self.show)
+        if len(self.objectives) > 1:
+            checkpoints = load_checkpoints(self.checkpoint_path)
+            plot_pareto_front_file = os.path.join(self.results_plot_path, f"pareto_front.png")
+            if self.domain == "xor":
+                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "XOR",
+                                         labels[self.objectives[0]], labels[self.objectives[1]],
+                                         4.0, 10000.0, show=self.show)
+            elif self.domain == "retina":
+                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Retina",
+                                         labels[self.objectives[0]], labels[self.objectives[1]],
+                                         1.0, 10000.0, show=self.show)
+            elif self.domain == "mazerobot":
+                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Mazerobot",
+                                         labels[self.objectives[0]], labels[self.objectives[1]],
+                                         13.5, 10000.0, show=self.show)
+            elif self.domain == "bipedal":
+                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "BipedalWalker",
+                                         labels[self.objectives[0]], labels[self.objectives[1]],
+                                         500.0, 10000.0, show=self.show)
 
     def save_genome_fitness(self, save_path):
         run_number = os.path.basename(os.path.normpath(save_path))

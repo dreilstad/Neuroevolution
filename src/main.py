@@ -1,7 +1,6 @@
 import argparse
 from neuroevolution import Neuroevolution
-from util import validate_input, load_checkpoints
-import neat
+from util import validate_input
 
 
 def main(domain, simulator, objectives, config_file, num_generations, show):
@@ -9,9 +8,13 @@ def main(domain, simulator, objectives, config_file, num_generations, show):
     #evaluator = neat.MultiObjectiveParallelEvaluator
     ne = Neuroevolution(domain, simulator, objectives, config_file,
                         num_generations, show, evaluator=evaluator)
-    winner = ne.run()
-    ne.visualize_stats(winner)
-    ne.save_stats()
+
+    num_experiments = 50
+    #num_experiments = 1
+    for _ in range(num_experiments):
+        winner = ne.run()
+        ne.visualize_stats(winner)
+        ne.save_stats()
 
 if __name__=="__main__":
 
