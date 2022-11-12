@@ -26,15 +26,18 @@ def clean_experiment(domain):
 
 def _clear_dir(path):
 
-    for name in os.listdir(path):
-        file_dir_path = os.path.join(path, name)
-        try:
-            if os.path.isfile(file_dir_path) or os.path.islink(file_dir_path):
-                os.unlink(file_dir_path)
-            elif os.path.isdir(file_dir_path):
-                shutil.rmtree(file_dir_path)
-        except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_dir_path, e))
+    try:
+        for name in os.listdir(path):
+            file_dir_path = os.path.join(path, name)
+            try:
+                if os.path.isfile(file_dir_path) or os.path.islink(file_dir_path):
+                    os.unlink(file_dir_path)
+                elif os.path.isdir(file_dir_path):
+                    shutil.rmtree(file_dir_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_dir_path, e))
+    except FileNotFoundError:
+        pass
 
 
 if __name__=="__main__":
