@@ -11,13 +11,13 @@ from simulation.maze_simulation import MazeSimulator
 from simulation.bipedal_walker_simulation import BipedalWalkerSimulator
 
 
-
 def validate_input(args):
     config = validate_config_file(args.config_file)
     objectives = validate_objectives(args.objectives)
     domain = validate_domain(args.domain)
 
     return domain, config, objectives, args.num_generations
+
 
 def validate_config_file(filename):
     local_dir = os.path.dirname(os.path.realpath(__file__))
@@ -26,6 +26,7 @@ def validate_config_file(filename):
         raise argparse.ArgumentTypeError(f"'{filename}' does not exist")
 
     return config_path
+
 
 def validate_domain(domain):
     simulators = {"xor": XORSimulator,
@@ -39,6 +40,7 @@ def validate_domain(domain):
 
     return simulators[domain]
 
+
 def validate_objectives(objectives):
     valid_objectives = ["performance", "hamming", "beh_div", "mod_div", "Q", "linear_cka", "rbf_cka"]
     for objective in objectives:
@@ -47,15 +49,19 @@ def validate_objectives(objectives):
 
     return objectives
 
+
 def clear_checkpoints(path, save_last=False):
     checkpoint_path = os.path.join(path, "*.pickle")
 
-    files = sorted(glob.glob(checkpoint_path))
+    files = glob.glob(checkpoint_path)
+    files.sort(key=os.path.getmtime)
+
     if save_last:
         files = files[:-1]
 
     for f in files:
         os.remove(f)
+
 
 def load_checkpoints(folder):
     print("Loading checkpoints from {0}...".format(folder))
