@@ -14,8 +14,6 @@ class CKA:
         else:
             self.cka_similarity_func = kernel_CKA
 
-        np.seterr('raise')
-
     def __getitem__(self, key):
         return self.similarity[key]
 
@@ -100,9 +98,8 @@ def linear_CKA(X, Y):
     hsic = linear_HSIC(X, Y)
     var1 = np.sqrt(linear_HSIC(X, X))
     var2 = np.sqrt(linear_HSIC(Y, Y))
-    #print(f"var1: {var1} \nvar2: {var2} \nvar1*var2: {var1*var2}")
-    epsilon = 0.000001
 
+    epsilon = 0.000001
     return hsic / ((var1 * var2) + epsilon)
 
 def kernel_CKA(X, Y, sigma=None):

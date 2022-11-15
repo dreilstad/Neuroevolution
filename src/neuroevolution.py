@@ -1,5 +1,5 @@
 import os
-import multiprocessing
+import multiprocessing as mp
 import numpy as np
 import neat
 import visualize
@@ -29,7 +29,7 @@ class Neuroevolution:
         self.stats = neat.StatisticsReporter()
         self.pop.add_reporter(self.stats)
         self.pop.add_reporter(neat.StdOutReporter(False))
-        self.pop.add_reporter(neat.Checkpointer(generation_interval=1,
+        self.pop.add_reporter(neat.Checkpointer(generation_interval=5,
                                                 filename_prefix=os.path.join(self.checkpoint_path, "gen_")))
 
     def run(self):
@@ -38,7 +38,7 @@ class Neuroevolution:
         self.init_reporters_and_checkpoints()
 
         if self.evaluator is not None:
-            evaluator = self.evaluator(6, self.simulator)
+            evaluator = self.evaluator(mp.cpu_count()//3, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate, n=self.num_generations)
         else:
             best_genome = self.pop.run(self.simulator.evaluate_genomes, n=self.num_generations)

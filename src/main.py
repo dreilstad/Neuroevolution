@@ -1,11 +1,13 @@
 import argparse
+import neat
 from neuroevolution import Neuroevolution
 from util import validate_input
 
 
-def main(domain, simulator, objectives, config_file, num_generations, show):
+def main(domain, simulator, objectives, config_file, num_generations, show, parallel):
     evaluator = None
-    #evaluator = neat.MultiObjectiveParallelEvaluator
+    if parallel:
+        evaluator = neat.MultiObjectiveParallelEvaluator
 
     num_experiments = 50
     for _ in range(num_experiments):
@@ -43,13 +45,18 @@ if __name__=="__main__":
                         action="store_true",
                         help="Shows plots if flag is present")
 
+    parser.add_argument("-p", "--parallel",
+                        action="store_true",
+                        help="Runs experiments in parallel if flag is present")
+
     args = parser.parse_args()
 
     print(args.domain)
     print(args.config_file)
     print(args.objectives)
     print(args.show)
+    print(args.parallel)
 
     simulator, config, objectives, num_generations = validate_input(args)
 
-    main(args.domain, simulator, objectives, config, num_generations, args.show)
+    main(args.domain, simulator, objectives, config, num_generations, args.show, args.parallel)

@@ -54,6 +54,8 @@ cover/
 # checkpoints
 *.pickle
 
+ea_plotting_scripts/
+
 # Translations
 *.mo
 *.pot
