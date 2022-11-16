@@ -74,7 +74,7 @@ class Neuroevolution:
         # plot stats
         plot_stats_save_file = os.path.join(self.results_plot_path, "avg_fitness.png")
         visualize.plot_stats(self.stats, plot_stats_save_file, ylog=False, show=self.show)
-
+        """
         # plot pareto front
         if len(self.objectives) > 1:
             checkpoints = load_checkpoints(self.checkpoint_path)
@@ -96,6 +96,7 @@ class Neuroevolution:
                                          labels[self.objectives[0]], labels[self.objectives[1]],
                                          500.0, 10000.0, show=self.show)
 
+        """
         clear_checkpoints(self.checkpoint_path, save_last=True)
 
     def save_genome_fitness(self, save_path):
