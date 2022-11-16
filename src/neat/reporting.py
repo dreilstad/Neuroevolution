@@ -102,17 +102,18 @@ class StdOutReporter(BaseReporter):
         ns = len(species_set.species)
         if self.show_species_detail:
             print('Population of {0:d} members in {1:d} species:'.format(ng, ns))
-            print("   ID   age  size  fitness  adj fit  stag")
-            print("  ====  ===  ====  =======  =======  ====")
+            print("   ID   age  size  fitness[0]  fitness[1]")
+            print("  ====  ===  ====  ==========  ==========")
             for sid in sorted(species_set.species):
                 s = species_set.species[sid]
                 a = self.generation - s.created
                 n = len(s.members)
-                f = "--" if s.fitness is None else "{:.1f}".format(s.fitness)
-                af = "--" if s.adjusted_fitness is None else "{:.3f}".format(s.adjusted_fitness)
-                st = self.generation - s.last_improved
+                f1 = "--" if s.fitness is None else "{:.1f}".format(s.fitness.values[0])
+                f2 = "--"
+                if s.fitness is not None and len(s.fitness.values) > 1:
+                    f2 = "{:.1f}".format(s.fitness.values[1])
                 print(
-                    "  {: >4}  {: >3}  {: >4}  {: >7}  {: >7}  {: >4}".format(sid, a, n, f, af, st))
+                    "  {: >4}  {: >3}  {: >4}  {: >7}  {: >7}".format(sid, a, n, f1, f2))
         else:
             print('Population of {0:d} members in {1:d} species'.format(ng, ns))
 
@@ -120,7 +121,7 @@ class StdOutReporter(BaseReporter):
         self.generation_times.append(elapsed)
         self.generation_times = self.generation_times[-10:]
         average = sum(self.generation_times) / len(self.generation_times)
-        print('Total extinctions: {0:d}'.format(self.num_extinctions))
+        #print('Total extinctions: {0:d}'.format(self.num_extinctions))
         if len(self.generation_times) > 1:
             print("Generation time: {0:.3f} sec ({1:.3f} average)".format(elapsed, average))
         else:
@@ -128,16 +129,23 @@ class StdOutReporter(BaseReporter):
 
     def post_evaluate(self, config, population, species, best_genome):
         # pylint: disable=no-self-use
-        fitnesses = [c.fitness for c in population.values()]
+        fitnesses = [c.fitness.values[0] for c in population.values()]
+
         fit_mean = mean(fitnesses)
         fit_std = stdev(fitnesses)
-        best_species_id = species.get_species_id(best_genome.key)
-        print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
-        print(
-            'Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(float(best_genome.fitness),
-                                                                                 best_genome.size(),
-                                                                                 best_species_id,
-                                                                                 best_genome.key))
+        print('Population\'s average performance: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
+
+        if len(best_genome.fitness.values) > 1:
+            print(
+                'Best fitness: obj1: {0:3.5f}, obj2: {1:3.5f} - size: {2!r} - id {3}'.format(float(best_genome.fitness.values[0]),
+                                                                                             float(best_genome.fitness.values[1]),
+                                                                                             best_genome.size(),
+                                                                                             best_genome.key))
+        else:
+            print(
+                'Best fitness: obj1: {0:3.5f} - size: {1!r} - id {2}'.format(float(best_genome.fitness.values[0]),
+                                                                             best_genome.size(),
+                                                                             best_genome.key))
 
     def complete_extinction(self):
         self.num_extinctions += 1

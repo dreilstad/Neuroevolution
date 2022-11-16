@@ -72,8 +72,7 @@ class MazeSimulator(Simulator):
 
             # save sequence if using hamming distance
             if self.hamming is not None:
-                bin_sequence = self._binarize_sequence([*network_inputs, *network_output])
-                sequence.extend(bin_sequence)
+                sequence.extend([*network_inputs, *network_output])
 
             # append activations if using CKA
             if self.CKA is not None:

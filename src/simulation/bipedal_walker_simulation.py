@@ -44,12 +44,11 @@ class BipedalWalkerSimulator(Simulator):
 
             # save sequence if using hamming distance
             if self.hamming is not None:
-                bin_sequence = self._binarize_sequence([*state, *action])
-                sequence.extend(bin_sequence)
+                sequence.extend([*state, *action])
 
             # append activations if using CKA
             if self.CKA is not None:
                 all_activations.append(activations)
 
         # [performance, hamming, Q, CKA]
-        return [task_performance, sequence, None, all_activations]
+        return [task_performance, self._binarize_sequence(sequence), None, all_activations]

@@ -37,8 +37,7 @@ class RetinaSimulator(Simulator):
 
                 # save sequence if using hamming distance
                 if self.hamming is not None:
-                    bin_sequence = self._binarize_sequence([*net_input, *net_output])
-                    sequence.extend(bin_sequence)
+                    sequence.extend([*net_input, *net_output])
 
                 # add to novelty item if using behavioural diversity
                 if self.novelty is not None:
@@ -53,7 +52,7 @@ class RetinaSimulator(Simulator):
         task_performance = 1.0 - float(error_sum/256.0)
 
         # [performance, hamming, Q, CKA]
-        return [task_performance, sequence, None, all_activations]
+        return [task_performance, self._binarize_sequence(sequence), None, all_activations]
 
     @staticmethod
     def _evaluate(neural_network, left, right):

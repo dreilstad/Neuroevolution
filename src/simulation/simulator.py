@@ -99,6 +99,9 @@ class Simulator:
 
     @staticmethod
     def _binarize_sequence(sequence):
+        if sequence is None:
+            return None
+
         theta = np.zeros(len(sequence), dtype=int)
 
         # binarize values and add to theta

@@ -106,9 +106,9 @@ class Population(object):
             # Track the best genome ever seen.
             if self.best_genome is None or best.fitness.values[0] > self.best_genome.fitness.values[0]:
                 self.best_genome = best
-            elif best.fitness.values[0] == self.best_genome.fitness.values[0]:
-                if len(best.fitness.values) > 1 and best.fitness.values[1] > self.best_genome.fitness.values[1]:
-                    self.best_genome = best
+            #elif best.fitness.values[0] == self.best_genome.fitness.values[0]:
+            #    if len(best.fitness.values) > 1 and best.fitness.values[1] > self.best_genome.fitness.values[1]:
+            #        self.best_genome = best
 
             if not self.config.no_fitness_termination:
                 # End if the fitness threshold is reached.
