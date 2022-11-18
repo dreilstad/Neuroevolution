@@ -52,9 +52,7 @@ class Neuroevolution:
             record_store_save_file = os.path.join(self.results_data_path, "agent_record_data.pickle")
             self.simulator.history.dump(record_store_save_file)
 
-        # save fitness=
-        #fitness_save_file = os.path.join(self.results_data_path, "best_and_mean_fitness_data.dat")
-        #self.stats.save_genome_fitness(delimiter=",", filename=fitness_save_file)
+        # save fitness
         self.save_genome_fitness(self.results_data_path)
 
     def visualize_stats(self, winner_genome):
@@ -74,7 +72,7 @@ class Neuroevolution:
         # plot stats
         plot_stats_save_file = os.path.join(self.results_plot_path, "avg_fitness.png")
         visualize.plot_stats(self.stats, plot_stats_save_file, ylog=False, show=self.show)
-        """
+
         # plot pareto front
         if len(self.objectives) > 1:
             checkpoints = load_checkpoints(self.checkpoint_path)
@@ -96,7 +94,6 @@ class Neuroevolution:
                                          labels[self.objectives[0]], labels[self.objectives[1]],
                                          500.0, 10000.0, show=self.show)
 
-        """
         clear_checkpoints(self.checkpoint_path, save_last=True)
 
     def save_genome_fitness(self, save_path):
