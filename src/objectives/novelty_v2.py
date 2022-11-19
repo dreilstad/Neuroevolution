@@ -10,8 +10,8 @@ class Novelty:
         https://github.com/12mashok/neat-python
         """
         self.novel_members = {}
-        self.pop_knn_neighbours = 14
-        self.archive_knn_neighbours = 7
+        self.pop_knn_neighbours = 75
+        self.archive_knn_neighbours = 50
         self.threshold = 0.75
 
     def calculate_novelty(self, genomes, iteration):
@@ -44,7 +44,7 @@ class Novelty:
         knn_model = NearestNeighbors(n_neighbors=pop_knn_neighbours, algorithm='ball_tree').fit(
             normalized_behavior_values)
 
-        if len(list(self.novel_members.keys())) < 1:
+        if len(self.novel_members) < 1:
             models = [knn_model]
         else:
             # Get behaviors of novel member archive and create KNN model
