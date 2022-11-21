@@ -2,8 +2,8 @@ import warnings
 import graphviz
 import matplotlib.pyplot as plt
 import numpy as np
-import networkx as nx
-from networkx.drawing.nx_agraph import graphviz_layout
+#import networkx as nx
+#from networkx.drawing.nx_agraph import graphviz_layout
 import neat
 from neat.nsga2 import NSGA2Reproduction
 def plot_stats(statistics, filename, ylog=False, show=False):
