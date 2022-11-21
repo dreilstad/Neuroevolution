@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import gym
 from simulation.simulator import Simulator
@@ -12,7 +13,8 @@ class BipedalWalkerSimulator(Simulator):
         # 4 output nodes
 
     def simulate(self, genome_id, genome, neural_network, generation):
-        self.env.reset()
+        env = copy.deepcopy(self.env)
+        env.reset()
 
         all_activations = None
         if self.CKA is not None:
@@ -30,7 +32,7 @@ class BipedalWalkerSimulator(Simulator):
         truncated = False
 
         while (not terminated) and (not truncated):
-            state, reward, terminated, truncated, info = self.env.step(action)
+            state, reward, terminated, truncated, info = env.step(action)
             task_performance += reward
             steps += 1
 
@@ -50,5 +52,7 @@ class BipedalWalkerSimulator(Simulator):
             if self.CKA is not None:
                 all_activations.append(activations)
 
-        # [performance, hamming, Q, CKA]
-        return [task_performance, self._binarize_sequence(sequence), None, all_activations]
+        novelty = [*env.hull.position]
+
+        # [performance, hamming, novelty, CKA, Q]
+        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]

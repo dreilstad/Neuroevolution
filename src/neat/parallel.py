@@ -3,6 +3,7 @@ Runs evaluation functions in parallel subprocesses
 in order to evaluate multiple genomes at once.
 """
 import neat
+import numpy as np
 from multiprocessing import Pool
 
 
@@ -62,7 +63,10 @@ class MultiObjectiveParallelEvaluator(ParallelEvaluator):
             self.simulator.hamming.sequences[genome_id] = simulation_output[1]
 
         if self.simulator.novelty is not None:
-            self.simulator.novelty.items[genome_id] = simulation_output[2]
+            self.simulator.novelty.behaviors[genome_id] = simulation_output[2]
+
+        if self.simulator.CKA is not None:
+            self.simulator.CKA.activations[genome_id] = np.array(simulation_output[3])
 
         if self.simulator.Q is not None:
             pass

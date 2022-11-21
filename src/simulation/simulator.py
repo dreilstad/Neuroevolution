@@ -31,8 +31,7 @@ class Simulator:
             self.hamming = Hamming()
 
         if "beh_div" in self.objectives:
-            self.novelty_archive = Novelty()
-            self.novelty = {}
+            self.novelty = Novelty()
 
         if "linear_cka" in self.objectives:
             self.CKA = CKA(linear_kernel=True)
@@ -57,7 +56,7 @@ class Simulator:
         if self.hamming is not None:
             self.hamming.assign_hamming_distances(genomes)
         if self.novelty is not None:
-            _, _, self.novelty = self.novelty_archive.calculate_novelty(genomes, generation)
+            self.novelty.calculate_novelty(genomes, generation)
         if self.Q is not None:
             pass
         if self.CKA is not None:
@@ -74,7 +73,7 @@ class Simulator:
                 elif objective == "beh_div":
                     fitnesses[i] = self.novelty[genome_id]
                 elif objective == "Q":
-                    pass
+                    fitnesses[i] = self.Q[genome_id]
                 elif objective == "linear_cka" or objective == "rbf_cka":
                     fitnesses[i] = 1.0 - self.CKA[genome_id]
 
@@ -87,15 +86,14 @@ class Simulator:
         if self.hamming is not None:
             self.hamming.sequences[genome_id] = simulation_output[1]
 
-        if self.Q is not None:
-            pass
+        if self.novelty is not None:
+            self.novelty.behaviors[genome_id] = simulation_output[2]
 
         if self.CKA is not None:
             self.CKA.activations[genome_id] = np.array(simulation_output[3])
 
-        if self.novelty is not None:
+        if self.Q is not None:
             pass
-            #self.novelty.items[genome_id] = simulation_output[4]
 
     @staticmethod
     def _binarize_sequence(sequence):

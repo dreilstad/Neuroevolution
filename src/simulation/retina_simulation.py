@@ -1,6 +1,6 @@
+import numpy as np
 from simulation.simulator import Simulator
-from simulation.environments.retina.retina_environment import RetinaEnvironment, Side
-from objectives.novelty import NoveltyItem
+from simulation.environments.retina.retina_environment import RetinaEnvironment, Side, VisualObject
 
 
 class RetinaSimulator(Simulator):
@@ -23,11 +23,6 @@ class RetinaSimulator(Simulator):
         if self.hamming is not None:
             sequence = []
 
-        nov_item = None
-        if self.novelty is not None:
-            nov_item = NoveltyItem(generation=generation, genome_id=genome_id)
-            self.novelty_items[genome_id] = nov_item
-
         # Evaluate the detector ANN against 256 combintaions of the left and the right visual objects
         # at correct and incorrect sides of retina
         for left in self.env.visual_objects:
@@ -39,10 +34,6 @@ class RetinaSimulator(Simulator):
                 if self.hamming is not None:
                     sequence.extend([*net_input, *net_output])
 
-                # add to novelty item if using behavioural diversity
-                if self.novelty is not None:
-                    nov_item.data.extend(net_output)
-
                 # append activations if using CKA
                 if self.CKA is not None:
                     all_activations.append(activations)
@@ -51,8 +42,11 @@ class RetinaSimulator(Simulator):
         # calculate the task performance score
         task_performance = 1.0 - float(error_sum/256.0)
 
-        # [performance, hamming, Q, CKA]
-        return [task_performance, self._binarize_sequence(sequence), None, all_activations]
+        # store network output of test patterns as genome's novelty characteristics
+        novelty = self._get_novelty_characteristic(neural_network)
+
+        # [performance, hamming, novelty, CKA, Q]
+        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
 
     @staticmethod
     def _evaluate(neural_network, left, right):
@@ -82,6 +76,18 @@ class RetinaSimulator(Simulator):
                 (network_output[1] - targets[1]) * (network_output[1] - targets[1])
 
         return error, inputs, network_output, activations
+
+    def _get_novelty_characteristic(self, neural_network):
+
+        # first test patterns
+        test_object_left = VisualObject("o o\no o", side=Side.LEFT)
+        test_object_right = VisualObject(". .\n. .", side=Side.RIGHT)
+
+        test_input = test_object_left.get_data() + test_object_right.get_data()
+        test_input.append(0.5)
+
+        network_output, activations = neural_network.activate(test_input)
+        return network_output
 
     @staticmethod
     def novelty_metric(first_item, second_item):

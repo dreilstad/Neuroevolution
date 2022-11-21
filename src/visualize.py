@@ -1,13 +1,11 @@
 import warnings
-import os
-import alphashape
 import graphviz
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.spatial import Delaunay
-from scipy.spatial.qhull import QhullError
-#from celluloid import Camera
-
+import networkx as nx
+from networkx.drawing.nx_agraph import graphviz_layout
+import neat
+from neat.nsga2 import NSGA2Reproduction
 def plot_stats(statistics, filename, ylog=False, show=False):
     """ Plots the population's average and best fitness. """
     if plt is None:
@@ -102,34 +100,58 @@ def draw_net(net, filename, node_names={}, node_colors={}):
         'height': '0.2',
         'width': '0.2'}
 
-    dot = graphviz.Digraph('svg', node_attr=node_attrs)
+    dot = graphviz.Digraph('svg',
+                           graph_attr={'ranksep': "1.5 equally",
+                                       'root': f"{net.input_nodes[len(net.output_nodes)//2]}"},
+                           node_attr=node_attrs)
 
-    inputs = set()
-    for k in net.input_nodes:
-        inputs.add(k)
-        name = node_names.get(k, str(k))
-        input_attrs = {'style': 'filled',
-                       'fillcolor': node_colors.get(k, 'lightgray')}
-        dot.node(name, _attributes=input_attrs)
+    print(sorted(net.input_nodes))
+    print(sorted(net.output_nodes))
+    with dot.subgraph() as s:
+        s.attr(rank="same")
+        for k in sorted(net.input_nodes):
+            name = node_names.get(k, str(k))
+            input_attrs = {'style': 'filled',
+                           'fillcolor': "#FFB000",
+                           'label': "",
+                           'fixedsize': 'true',
+                           'width': '0.5',
+                           'height': '0.5'}
+            s.node(name, _attributes=input_attrs)
 
-    outputs = set()
-    for k in net.output_nodes:
-        outputs.add(k)
-        name = node_names.get(k, str(k))
-        node_attrs = {'style': 'filled',
-                      'fillcolor': node_colors.get(k, 'lightblue')}
-        dot.node(name, _attributes=node_attrs)
+    with dot.subgraph() as s:
+        s.attr(rank="max")
+        for k in sorted(net.output_nodes):
+            name = node_names.get(k, str(k))
+            output_attrs = {'style': 'filled',
+                            'fillcolor': "#DC267F",
+                            'label': "",
+                            'fixedsize': 'true',
+                            'width': '0.5',
+                            'height': '0.5'}
+            s.node(name, _attributes=output_attrs)
 
-    for node, _, _, _, _, links in net.node_evals:
-        for i, w in links:
-            node_input, output = node, i
-            a = node_names.get(output, str(output))
-            b = node_names.get(node_input, str(node_input))
-            style = 'solid'
-            color = 'black'
-            width = str(1.0)
-            dot.edge(a, b, _attributes={
-                     'style': style, 'color': color, 'penwidth': width, 'dir':"none"})
+    with dot.subgraph() as s:
+        for node, _, _, _, _, links in net.node_evals:
+            if node not in net.output_nodes:
+                name = node_names.get(node, str(node))
+                hidden_attrs = {'style': 'filled',
+                                'fillcolor': "#648FFF",
+                                'label': "",
+                                'fixedsize': 'true',
+                                'width': '0.5',
+                                'height': '0.5'}
+                s.node(name, _attributes=hidden_attrs)
+
+            for i, w in links:
+                node_input, output = node, i
+                a = node_names.get(output, str(output))
+                b = node_names.get(node_input, str(node_input))
+                style = 'solid'
+                color = 'black'
+                dot.edge(a, b, _attributes={
+                         'style': style, 'color': color, 'dir':"forward"})
+
 
     dot.render(filename)
 
@@ -138,7 +160,43 @@ def draw_net(net, filename, node_names={}, node_colors={}):
 if __name__=="__main__":
     from util import load_checkpoints
     check = load_checkpoints("/Users/didrik/Documents/Master/Neuroevolution/src/checkpoints/retina/performance-hamming/000")
-    save_file = "/Users/didrik/Documents/Master/Neuroevolution/src/results/plots/retina/performance-hamming/050/pareto_front_test.png"
-    plot_pareto_2d(check, save_file, "Retina",
-                             "Task Performance", "Hamming Distance",
-                             500.0, 10000.0)
+    #save_file = "/Users/didrik/Documents/Master/Neuroevolution/src/results/plots/retina/performance-hamming/050/pareto_front_test.png"
+    #plot_pareto_2d(check, save_file, "Retina",
+    #                         "Task Performance", "Hamming Distance",
+    #                         500.0, 10000.0)
+    config_file = "/Users/didrik/Documents/Master/Neuroevolution/src/config/retina_config_multiobj.ini"
+    i = 0
+    #for c in check[-1]:
+    for genome_id, genome in check[-1].population.items():
+        if genome.fitness.rank == 0:
+            network = neat.nn.FeedForwardNetwork.create(genome, neat.Config(neat.DefaultGenome, NSGA2Reproduction,
+                                                                            neat.DefaultSpeciesSet, neat.NoStagnation,
+                                                                            config_file))
+            draw_net(network, f"{i}_network")
+            """
+            G = toNetworkxGraph(network)
+
+            color_map = []
+            for node in G:
+                if node in network.input_nodes:
+                    color_map.append("#FFB000")
+                elif node in network.output_nodes:
+                    color_map.append("#DC267F")
+                else:
+                    color_map.append("#648FFF")
+
+            pos = graphviz_layout(G, prog="dot")
+
+            nx.draw(G, node_color=color_map, node_size=500, with_labels=True, pos=pos, font_weight="bold")
+            color_labels = {"Input nodes":"#FFB000", "Hidden nodes":"#648FFF", "Output nodes":"#DC267F"}
+            for name, color in color_labels.items():
+                plt.scatter([], [], c=color, label=name)
+
+            plt.legend()
+            plt.savefig(f"{i}_network.png")
+            plt.close()
+            """
+
+            i += 1
+
+    print(i)

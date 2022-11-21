@@ -23,10 +23,11 @@ class MazeSimulator(Simulator):
     def simulate(self, genome_id, genome, neural_network, generation):
 
         maze = copy.deepcopy(self.env)
-        task_performance, sequence, all_activations = self.maze_simulation_evaluate(env=maze,
-                                                                                    genome=genome,
-                                                                                    net=neural_network,
-                                                                                    time_steps=self.MAX_TIME_STEPS)
+        task_performance, sequence, all_activations, novelty = self.maze_simulation_evaluate(
+                                                                            env=maze,
+                                                                            genome=genome,
+                                                                            net=neural_network,
+                                                                            time_steps=self.MAX_TIME_STEPS)
 
         record = AgentRecord(generation=generation, agent_id=genome_id)
         record.distance = task_performance
@@ -36,8 +37,8 @@ class MazeSimulator(Simulator):
         record.species_id = 1
         self.history.add_record(record)
 
-        # [performance, hamming, Q, CKA]
-        return [task_performance, self._binarize_sequence(sequence), None, all_activations]
+        # [performance, hamming, novelty, CKA, Q]
+        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
 
     def maze_simulation_evaluate(self, env, genome, net, time_steps, path_points=None):
         """
@@ -87,7 +88,7 @@ class MazeSimulator(Simulator):
                 path_points.append(Point(env.agent.location.x, env.agent.location.y))
 
         # store final agent coordinates as genome's novelty characteristics
-        genome.behavior = [env.agent.location.x, env.agent.location.y]
+        novelty = [env.agent.location.x, env.agent.location.y]
 
         # Calculate the fitness score based on distance from exit
         fitness = 0.0
@@ -98,7 +99,7 @@ class MazeSimulator(Simulator):
             distance_to_exit = env.agent_distance_to_exit()
             fitness = (env.initial_distance - distance_to_exit) / env.initial_distance
 
-        return fitness, sequence, all_activations
+        return fitness, sequence, all_activations, novelty
 
     @staticmethod
     def novelty_metric(first_item, second_item):

@@ -10,11 +10,17 @@ class Novelty:
         https://github.com/12mashok/neat-python
         """
         self.novel_members = {}
-        self.pop_knn_neighbours = 75
-        self.archive_knn_neighbours = 50
+        self.novelty_scores = {}
+        self.behaviors = {}
+
+        self.pop_knn_neighbours = 60
+        self.archive_knn_neighbours = 40
         self.threshold = 0.75
 
-    def calculate_novelty(self, genomes, iteration):
+    def __getitem__(self, key):
+        return self.novelty_scores[key]
+
+    def calculate_novelty(self, genomes, generation):
         """
         Carries out two steps:
 
@@ -24,12 +30,12 @@ class Novelty:
         """
 
         # Extract behaviors of all genomes in the population
-        behaviors = {}
-        for genome_id, genome in genomes:
-            behaviors[genome_id] = genome.behavior
+        #behaviors = {}
+        #for genome_id, genome in genomes:
+        #    behaviors[genome_id] = genome.behavior
 
         # Get all behavior values in current population and create a KNN model
-        behavior_values = np.array(list(behaviors.values()))
+        behavior_values = np.array(list(self.behaviors.values()))
 
         # If neighbours value is out of bounds, set it to max possible value
         if int(self.pop_knn_neighbours) > len(behavior_values):
@@ -49,7 +55,7 @@ class Novelty:
         else:
             # Get behaviors of novel member archive and create KNN model
             novel_members = list(self.novel_members.values())
-            novel_members_behaviors = np.array([member[0][1].behavior for member in novel_members])
+            novel_members_behaviors = np.array([self.behaviors[member_key] for member_key in novel_members])
             novel_members_behaviors.reshape(-1, 1)
 
             # If neighbours value is out of bounds, set it to max possible value
@@ -70,34 +76,35 @@ class Novelty:
 
         # Novelty is assigned as the average distance to the k-nearest neighbors
         # If genome is novel, average distance will be high.
-        knn_distances = self.calculate_population_distances(behaviors, genomes, models)
+        self.calculate_population_distances(self.behaviors, genomes, models)
 
         # Extract fitnesses of all genomes in the population after they have been calculated in previous step
         fitnesses = {}
         for genome_id, genome in genomes:
             # store genome id as value for easy access
-            fitnesses[knn_distances[genome_id]] = genome_id
+            fitnesses[self.novelty_scores[genome_id]] = genome_id
 
         # Get best genome, it's fitness, and behavior value
         best_fitness = max(list(fitnesses.keys()))
         best_fitness_genome_id = fitnesses[best_fitness]
-        best_behavior = behaviors[best_fitness_genome_id]
+        best_behavior = self.behaviors[best_fitness_genome_id]
         best_genome = [genome for genome in genomes if genome[0] == best_fitness_genome_id]
 
         # If novel member archive has less than three members add best genomes
         if len(list(self.novel_members.keys())) < 1:
-            self.novel_members[iteration] = best_genome
+            self.novel_members[generation] = best_genome[0][0]
 
         # If knn average of best genome is greater than threshold, add to novel member archive
         else:
             # If distance of best genome is greater than threshold, add to novel member archive
             knn_distance = self.KNN_distance(best_behavior, novel_members_knn_model)
-            #print('knn threshhold: ', self.threshold, type(self.threshold))
+
             if knn_distance > float(self.threshold):
-                self.novel_members[iteration] = best_genome
+                self.novel_members[generation] = best_genome[0][0]
 
         # Return novel member archive and behavior for entire population
-        return self.novel_members, behavior_values, knn_distances
+        #return self.novel_members, behavior_values, knn_distances
+
 
     def calculate_population_distances(self, behaviors, genomes, knn_models):
         """
@@ -107,7 +114,6 @@ class Novelty:
         behavior_values = list(behaviors.values())
         behavior_min = np.amin(behavior_values)
         behavior_max = np.amax(behavior_values)
-        knn_distances = {}
 
         # For each genome
         for genome_id, genome in genomes:
@@ -124,12 +130,9 @@ class Novelty:
                 # Add average distance to fitness. The more novel a genome, the higher its average knn distance, and the higher its fitness
                 fitness += average_distance
 
-            # Set genonme fitness
-            #genome.fitness = fitness
-            knn_distances[genome_id] = fitness
-        # print('fitness: ', genome.fitness)
+            # Set genome novelty
+            self.novelty_scores[genome_id] = fitness
 
-        return knn_distances
 
     def KNN_distance(self, behavior, knn_model):
         """
@@ -144,6 +147,9 @@ class Novelty:
         """
         Normalizes data according to X_norm = (X - X_min)/(X_max-X_min)
         """
+
+        if data.ndim == 1:
+            return data
 
         # Transpose data
         data = data.T
