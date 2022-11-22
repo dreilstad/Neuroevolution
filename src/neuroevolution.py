@@ -38,7 +38,7 @@ class Neuroevolution:
         self.init_reporters_and_checkpoints()
 
         if self.evaluator is not None:
-            evaluator = self.evaluator(mp.cpu_count()//6, self.simulator)
+            evaluator = self.evaluator(mp.cpu_count()//4, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate, n=self.num_generations)
         else:
             best_genome = self.pop.run(self.simulator.evaluate_genomes, n=self.num_generations)

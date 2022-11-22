@@ -26,3 +26,4 @@ class Hamming:
     def hamming_distance(theta_1, theta_2):
         hamming_distance = np.count_nonzero(theta_1 != theta_2)
         return hamming_distance
+        #return sum(a != b for a, b in zip_longest(theta_1, theta_2))
