@@ -21,6 +21,7 @@ class Hamming:
         # divide by pop_size - 1
         num_other_genomes = (len(genomes) - 1)
         self.hamming = {key: value / num_other_genomes for key, value in distances.items()}
+        self.sequences = {}
 
     @staticmethod
     def hamming_distance(theta_1, theta_2):
