@@ -173,7 +173,8 @@ class MazeEnvironment:
 
             # Update sensor value
             for i, job in enumerate(jobs):
-                self.agent.range_finders[i] = job.get(timeout=None)
+                value = job.get(timeout=None)
+                self.agent.range_finders[i] = value
 
     def update_radars(self):
         """
