@@ -13,8 +13,8 @@ class Novelty:
         self.novelty_scores = {}
         self.behaviors = {}
 
-        self.pop_knn_neighbours = 60
-        self.archive_knn_neighbours = 40
+        self.pop_knn_neighbours = 20
+        self.archive_knn_neighbours = 10
         self.threshold = 0.75
 
     def __getitem__(self, key):
