@@ -6,7 +6,7 @@
 # https://github.com/PacktPublishing/Hands-on-Neuroevolution-with-Python/tree/dd8a9bbc79c3a73661b284601b03fc3dd384422e/Chapter6
 
 import math
-
+import multiprocessing as mp
 from .agent import Agent
 from .geometry import Point, Line, deg_to_rad, read_line, read_point
 
@@ -162,36 +162,18 @@ class MazeEnvironment:
         """
         The function to update the agent range finder sensors.
         """
-        for i, angle in enumerate(self.agent.range_finder_angles):
-            rad = deg_to_rad(angle)
-            # project a point from agent location outwards
-            projection_point = Point(
-                x = self.agent.location.x + math.cos(rad) * self.agent.range_finder_range,
-                y = self.agent.location.y + math.sin(rad) * self.agent.range_finder_range
-            )
-            # rotate the projection point by the agent's heading angle to
-            # align it with heading direction
-            projection_point.rotate(self.agent.heading, self.agent.location)
-            # create the line segment from the agent location to the projected point
-            projection_line = Line(
-                a = self.agent.location,
-                b = projection_point
-            )
-            # set range to maximum detection range
-            min_range = self.agent.range_finder_range
-
-            # now test against maze walls to see if projection line hits any wall
-            # and find the closest hit
-            for wall in self.walls:
-                found, intersection = wall.intersection(projection_line)
-                if found:
-                    found_range = intersection.distance(self.agent.location)
-                    # we are interested in the closest hit
-                    if found_range < min_range:
-                        min_range = found_range
+        with mp.Pool(mp.cpu_count()//4) as pool:
+            jobs = []
+            for angle in self.agent.range_finder_angles:
+                jobs.append(pool.apply_async(_update_rangefinder_sensors_parallel, (self.agent.location,
+                                                                                    self.agent.heading,
+                                                                                    angle,
+                                                                                    self.agent.range_finder_range,
+                                                                                    self.walls)))
 
             # Update sensor value
-            self.agent.range_finders[i] = min_range
+            for i, job in enumerate(jobs):
+                self.agent.range_finders[i] = job.get(timeout=None)
 
     def update_radars(self):
         """
@@ -272,6 +254,39 @@ class MazeEnvironment:
             str += "\n\t%s" % w
         
         return str
+
+
+def _update_rangefinder_sensors_parallel(location, heading, angle, range_finder_range, walls):
+    """
+    The function to update the agent range finder sensors.
+    """
+
+    rad = deg_to_rad(angle)
+    # project a point from agent location outwards
+    projection_point = Point(x=location.x + math.cos(rad) * range_finder_range,
+                             y=location.y + math.sin(rad) * range_finder_range)
+    # rotate the projection point by the agent's heading angle to
+    # align it with heading direction
+    projection_point.rotate(heading, location)
+    # create the line segment from the agent location to the projected point
+    projection_line = Line(a=location,
+                           b=projection_point)
+    # set range to maximum detection range
+    min_range = range_finder_range
+
+    # now test against maze walls to see if projection line hits any wall
+    # and find the closest hit
+    for wall in walls:
+        found, intersection = wall.intersection(projection_line)
+        if found:
+            found_range = intersection.distance(location)
+            # we are interested in the closest hit
+            if found_range < min_range:
+                min_range = found_range
+
+    # Update sensor value
+    return min_range
+
 
 def read_environment(file_path):
     """
