@@ -15,7 +15,7 @@ class Novelty:
 
         self.pop_knn_neighbours = 20
         self.archive_knn_neighbours = 10
-        self.threshold = 0.75
+        self.threshold = 0.1
 
     def __getitem__(self, key):
         return self.novelty_scores[key]
