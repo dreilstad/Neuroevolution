@@ -121,7 +121,7 @@ class Line:
             The tuple with the first value indicating if intersection was found (True/False)
             and the second value holding the intersection Point or None
         """
-
+        """
         A, B, C, D = self.a, self.b, line.a, line.b
 
         rTop = (A.y - C.y) * (D.x - C.x) - (A.x - C.x) * (D.y - C.y)
@@ -149,7 +149,6 @@ class Line:
             return found, Point(intersection[0], intersection[1])
         else:
             return found, None
-        """
 
     def distance(self, p):
         """
@@ -192,7 +191,6 @@ class Line:
         """
         return "Line (%.1f, %.1f) -> (%.1f, %.1f)" % (self.a.x, self.a.y, self.b.x, self.b.y)
 
-"""
 @njit
 def _numba_intersection(A_x, A_y, B_x, B_y, C_x, C_y, D_x, D_y):
     #A, B, C, D = self.a, self.b, line.a, line.b
@@ -215,4 +213,3 @@ def _numba_intersection(A_x, A_y, B_x, B_y, C_x, C_y, D_x, D_y):
         return True, (x, y)
 
     return False, None
-"""
