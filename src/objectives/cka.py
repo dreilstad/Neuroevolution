@@ -41,6 +41,7 @@ class CKA:
 
         num_other_genomes = (len(genomes) - 1)
         self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
+        self.activations = {}
 
     def calculate_CKA_similarities_parallel(self, genomes):
         similarities = {genome_id: 0.0 for genome_id, _ in genomes}
@@ -61,6 +62,7 @@ class CKA:
             num_other_genomes = (len(genomes) - 1)
             self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
 
+        self.activations = {}
 
 def centering(K):
     n = K.shape[0]
