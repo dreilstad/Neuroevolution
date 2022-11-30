@@ -46,17 +46,17 @@ class Simulator:
             simulation_output = self.simulate(genome_id, genome, neural_network, generation)
             self._assign_output(genome_id, simulation_output)
 
-        self.assign_fitness(genomes, generation)
+        self.assign_fitness(genomes)
 
     def simulate(self, genome_id, genome, neural_network, generation):
         raise NotImplementedError
 
-    def assign_fitness(self, genomes, generation):
+    def assign_fitness(self, genomes):
         # do calculation of objectives which need genome-to-population comparison
         if self.hamming is not None:
             self.hamming.assign_hamming_distances(genomes)
         if self.novelty is not None:
-            self.novelty.calculate_novelty(genomes, generation)
+            self.novelty.calculate_novelty(genomes)
         if self.Q is not None:
             pass
         if self.CKA is not None:

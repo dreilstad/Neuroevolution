@@ -53,7 +53,7 @@ class MultiObjectiveParallelEvaluator(ParallelEvaluator):
             simulation_output = job.get(timeout=self.timeout)
             self._assign_output(genome_id, simulation_output)
 
-        self.simulator.assign_fitness(genomes, generation)
+        self.simulator.assign_fitness(genomes)
 
     def _assign_output(self, genome_id, simulation_output):
         if self.simulator.performance is not None:
