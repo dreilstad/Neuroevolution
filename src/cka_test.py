@@ -71,14 +71,29 @@ def parallel(all_X, pool):
 
 if __name__=="__main__":
 
-    N = 150
+    N = 250
     all_X = []
     for i in range(N):
-        all_X.append(np.random.randn(64, 32))
+        all_X.append(np.random.randn(64, np.random.randint(16, 128)))
+
+    repdivs = []
+    for i in range(100):
+        X = np.random.choice(np.arange(N))
+        Y = np.random.choice(np.arange(N))
+
+        sim = linear_CKA(all_X[X],all_X[Y])
+        print(f"idx: X={X}, Y={Y}")
+        print(f"shapes: X.shape={all_X[X].shape}, Y.shape={all_X[Y].shape}")
+        print(f"similarity: {sim}")
+        print(f"RepDiv: {1/sim}\n")
+        repdivs.append(1/sim)
+
+    print(f"Max RepDiv: {max(repdivs)}")
+    print(f"Min RepDiv: {min(repdivs)}")
 
     #pool = mp.Pool(mp.cpu_count())
     #pool.close()
-
+    """
     print(mp.cpu_count())
     start = time.time()
     with mp.Pool(mp.cpu_count()//2) as pool:
@@ -91,6 +106,7 @@ if __name__=="__main__":
 
     print(f"Sequential runtime: {seq_time} s")
     print(f"Parallel runtime: {parallel_time} s")
+    """
 
 
 

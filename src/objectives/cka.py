@@ -38,8 +38,7 @@ class CKA:
             similarities[genome_A_id] += similarity_value
             similarities[genome_B_id] += similarity_value
 
-
-        num_other_genomes = (len(genomes) - 1)
+        num_other_genomes = len(genomes) - 1
         self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
         self.activations = {}
 
@@ -59,9 +58,8 @@ class CKA:
                 similarities[genome_A_id] += similarity_value
                 similarities[genome_B_id] += similarity_value
 
-            num_other_genomes = (len(genomes) - 1)
-            self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
-
+        num_other_genomes = len(genomes) - 1
+        self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
         self.activations = {}
 
 def centering(K):

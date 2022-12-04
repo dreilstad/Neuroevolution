@@ -75,7 +75,7 @@ class Simulator:
                 elif objective == "Q":
                     fitnesses[i] = self.Q[genome_id]
                 elif objective == "linear_cka" or objective == "rbf_cka":
-                    fitnesses[i] = 1.0 - self.CKA[genome_id]
+                    fitnesses[i] = 1.0 / self.CKA[genome_id]
 
             genome.fitness.add(*fitnesses)
 
