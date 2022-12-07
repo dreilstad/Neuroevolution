@@ -1,0 +1,33 @@
+digraph svg {
+	graph [ranksep="1.5 equally" root=-2]
+	node [fontsize=9 height=0.2 shape=circle width=0.2]
+	{
+		rank=same
+		-10 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-9 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-8 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-7 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-6 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-5 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-4 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-3 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-2 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		-1 [fillcolor="#FFB000" fixedsize=true height=0.5 label="" style=filled width=0.5]
+	}
+	{
+		rank=max
+		0 [fillcolor="#DC267F" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		1 [fillcolor="#DC267F" fixedsize=true height=0.5 label="" style=filled width=0.5]
+	}
+	-8 -> 10299 [color=black dir=forward style=solid]
+	-3 -> 10699 [color=black dir=forward style=solid]
+	-8 -> 1 [color=black dir=forward style=solid]
+	-9 -> 1 [color=black dir=forward style=solid]
+	-10 -> 1 [color=black dir=forward style=solid]
+	10299 -> 1 [color=black dir=forward style=solid]
+	10699 -> 1 [color=black dir=forward style=solid]
+	{
+		10299 [fillcolor="#648FFF" fixedsize=true height=0.5 label="" style=filled width=0.5]
+		10699 [fillcolor="#648FFF" fixedsize=true height=0.5 label="" style=filled width=0.5]
+	}
+}

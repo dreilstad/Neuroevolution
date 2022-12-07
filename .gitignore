@@ -52,7 +52,7 @@ coverage.xml
 cover/
 
 # checkpoints
-*.pickle
+#*.pickle
 
 ea_plotting_scripts/
 
