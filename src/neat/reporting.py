@@ -27,13 +27,13 @@ class ReporterSet(object):
         for r in self.reporters:
             r.start_generation(gen)
 
-    def end_generation(self, config, population, species_set):
+    def end_generation(self, config, population):
         for r in self.reporters:
-            r.end_generation(config, population, species_set)
+            r.end_generation(config, population)
 
-    def post_evaluate(self, config, population, species, best_genome):
+    def post_evaluate(self, config, population, best_genome):
         for r in self.reporters:
-            r.post_evaluate(config, population, species, best_genome)
+            r.post_evaluate(config, population, best_genome)
 
     def post_reproduction(self, config, population, species):
         for r in self.reporters:
@@ -61,10 +61,10 @@ class BaseReporter(object):
     def start_generation(self, generation):
         pass
 
-    def end_generation(self, config, population, species_set):
+    def end_generation(self, config, population):
         pass
 
-    def post_evaluate(self, config, population, species, best_genome):
+    def post_evaluate(self, config, population, best_genome):
         pass
 
     def post_reproduction(self, config, population, species):
@@ -97,25 +97,9 @@ class StdOutReporter(BaseReporter):
         print('\n ****** Running generation {0} ****** \n'.format(generation))
         self.generation_start_time = time.time()
 
-    def end_generation(self, config, population, species_set):
+    def end_generation(self, config, population):
         ng = len(population)
-        ns = len(species_set.species)
-        if self.show_species_detail:
-            print('Population of {0:d} members in {1:d} species:'.format(ng, ns))
-            print("   ID   age  size  fitness[0]  fitness[1]")
-            print("  ====  ===  ====  ==========  ==========")
-            for sid in sorted(species_set.species):
-                s = species_set.species[sid]
-                a = self.generation - s.created
-                n = len(s.members)
-                f1 = "--" if s.fitness is None else "{:.1f}".format(s.fitness.values[0])
-                f2 = "--"
-                if s.fitness is not None and len(s.fitness.values) > 1:
-                    f2 = "{:.1f}".format(s.fitness.values[1])
-                print(
-                    "  {: >4}  {: >3}  {: >4}  {: >7}  {: >7}".format(sid, a, n, f1, f2))
-        else:
-            print('Population of {0:d} members in {1:d} species'.format(ng, ns))
+        print('Population of {0:d} members'.format(ng))
 
         elapsed = time.time() - self.generation_start_time
         self.generation_times.append(elapsed)
@@ -127,7 +111,7 @@ class StdOutReporter(BaseReporter):
         else:
             print("Generation time: {0:.3f} sec".format(elapsed))
 
-    def post_evaluate(self, config, population, species, best_genome):
+    def post_evaluate(self, config, population, best_genome):
         # pylint: disable=no-self-use
         fitnesses = [c.fitness.values[0] for c in population.values()]
 

@@ -105,15 +105,13 @@ def draw_net(net, filename, node_names={}, node_colors={}):
                                        'root': f"{net.input_nodes[len(net.output_nodes)//2]}"},
                            node_attr=node_attrs)
 
-    print(sorted(net.input_nodes))
-    print(sorted(net.output_nodes))
     with dot.subgraph() as s:
         s.attr(rank="same")
         for k in sorted(net.input_nodes):
             name = node_names.get(k, str(k))
             input_attrs = {'style': 'filled',
                            'fillcolor': "#FFB000",
-                           'label': "",
+                           'label': name,
                            'fixedsize': 'true',
                            'width': '0.5',
                            'height': '0.5'}
@@ -125,7 +123,7 @@ def draw_net(net, filename, node_names={}, node_colors={}):
             name = node_names.get(k, str(k))
             output_attrs = {'style': 'filled',
                             'fillcolor': "#DC267F",
-                            'label': "",
+                            'label': name,
                             'fixedsize': 'true',
                             'width': '0.5',
                             'height': '0.5'}
@@ -137,7 +135,7 @@ def draw_net(net, filename, node_names={}, node_colors={}):
                 name = node_names.get(node, str(node))
                 hidden_attrs = {'style': 'filled',
                                 'fillcolor': "#648FFF",
-                                'label': "",
+                                'label': name,
                                 'fixedsize': 'true',
                                 'width': '0.5',
                                 'height': '0.5'}

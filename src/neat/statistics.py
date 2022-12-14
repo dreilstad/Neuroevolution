@@ -22,21 +22,19 @@ class StatisticsReporter(BaseReporter):
         self.most_fit_genomes = []
         self.generation_statistics = []
 
-    def post_evaluate(self, config, population, species, best_genome):
+    def post_evaluate(self, config, population, best_genome):
         self.most_fit_genomes.append(copy.deepcopy(best_genome))
 
-        # Store the fitnesses of the members of each currently active species.
-        species_stats = {}
-        for sid, s in species.species.items():
-            species_stats[sid] = dict((k, v.fitness) for k, v in s.members.items())
-        self.generation_statistics.append(species_stats)
+        # Store the fitnesses of the members of population
+        pop_stats = dict((k, v.fitness) for k, v in population.items())
+        self.generation_statistics.append(pop_stats)
 
     def get_fitness_stat(self, f):
         stat = []
         for stats in self.generation_statistics:
             scores = []
-            for species_stats in stats.values():
-                scores.extend(species_stats.values())
+            for pop_stats in stats.values():
+                scores.append(pop_stats.values[0])
             stat.append(f(scores))
 
         return stat

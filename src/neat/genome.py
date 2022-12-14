@@ -6,12 +6,13 @@ from itertools import count
 from random import choice, random, shuffle
 
 import sys
+import copy
 
 from neat.activations import ActivationFunctionSet
 from neat.aggregations import AggregationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
-from neat.graphs import creates_cycle
+from neat.graphs import creates_cycle, required_for_output
 
 
 class DefaultGenomeConfig(object):
@@ -171,7 +172,6 @@ class DefaultGenome(object):
 
         # Fitness results.
         self.fitness = None
-        self.behavior = None
 
     def configure_new(self, config):
         """Configure a new genome based on the given configuration."""
@@ -231,6 +231,15 @@ class DefaultGenome(object):
                             config.connection_fraction),
                         sep='\n', file=sys.stderr)
                 self.connect_partial_nodirect(config)
+
+    def copy_genes(self, genome):
+        """ Copies all connection and node genes to new genome """
+        for key, connection_gene in genome.connections.items():
+            self.connections[key] = connection_gene.copy()
+
+        for key, node_gene in genome.nodes.items():
+            self.nodes[key] = node_gene.copy()
+
 
     def configure_crossover(self, genome1, genome2, config):
         """ Configure a new genome by crossover from two parent genomes. """
@@ -313,14 +322,13 @@ class DefaultGenome(object):
         ng = self.create_node(config, new_node_id)
         self.nodes[new_node_id] = ng
 
-        # Disable this connection and create two new connections joining its nodes via
-        # the given node.  The new node+connections have roughly the same behavior as
-        # the original connection (depending on the activation function of the new node).
-        conn_to_split.enabled = False
-
+        # create two new connections from the randomly chosen connection to split
         i, o = conn_to_split.key
         self.add_connection(config, i, new_node_id, 1.0, True)
         self.add_connection(config, new_node_id, o, conn_to_split.weight, True)
+
+        # remove previous connection
+        del self.connections[conn_to_split.key]
 
     def add_connection(self, config, input_key, output_key, weight, enabled):
         # TODO: Add further validation of this connection addition?
@@ -369,11 +377,46 @@ class DefaultGenome(object):
         self.connections[cg.key] = cg
 
     def mutate_delete_node(self, config):
-        # Do nothing if there are no non-output nodes.
+
+        # get all hidden nodes
         available_nodes = [k for k in self.nodes if k not in config.output_keys]
+
+        # do nothing if there are no non-output nodes.
         if not available_nodes:
             return -1
 
+        # find all removable nodes (i.e. nodes with only 1 input and 1 output)
+        removable_nodes = []
+        for node_id in available_nodes:
+            print(f"node: {node_id}")
+            num_input = 0
+            num_output = 0
+            edge_to_add = [None, None]
+            edges_to_remove = []
+            for connection, gene in self.connections.items():
+                if gene.enabled:
+                    if node_id == connection[1]:
+                        print(f"    in_edge: {connection}")
+                        num_input += 1
+                        edge_to_add[0] = connection[0]
+                        edges_to_remove.append(connection)
+                    if node_id == connection[0]:
+                        print(f"    out_edge: {connection}")
+                        num_output += 1
+                        edge_to_add[1] = connection[1]
+                        edges_to_remove.append(connection)
+
+
+            print(f"    num_input: {num_input}")
+            print(f"    num_output: {num_output}")
+            # add node and edge to add if removed
+            if num_input == 1 and num_output == 1:
+                removable_nodes.append((node_id, tuple(edge_to_add), edges_to_remove))
+
+        print(self.connections.keys())
+        print([v.enabled for v in self.connections.values()])
+        print(removable_nodes)
+        return -1
         del_key = choice(available_nodes)
 
         connections_to_delete = set()
@@ -566,3 +609,30 @@ class DefaultGenome(object):
         for input_id, output_id in all_connections[:num_to_add]:
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
+
+    def get_pruned_copy(self, genome_config):
+        used_node_genes, used_connection_genes = get_pruned_genes(self.nodes, self.connections,
+                                                                  genome_config.input_keys, genome_config.output_keys)
+        new_genome = DefaultGenome(None)
+        new_genome.nodes = used_node_genes
+        new_genome.connections = used_connection_genes
+        return new_genome
+
+
+def get_pruned_genes(node_genes, connection_genes, input_keys, output_keys):
+    used_nodes = required_for_output(input_keys, output_keys, connection_genes)
+    used_pins = used_nodes.union(input_keys)
+
+    # Copy used nodes into a new genome.
+    used_node_genes = {}
+    for n in used_nodes:
+        used_node_genes[n] = copy.deepcopy(node_genes[n])
+
+    # Copy enabled and used connections into the new genome.
+    used_connection_genes = {}
+    for key, cg in connection_genes.items():
+        in_node_id, out_node_id = key
+        if cg.enabled and in_node_id in used_pins and out_node_id in used_pins:
+            used_connection_genes[key] = copy.deepcopy(cg)
+
+    return used_node_genes, used_connection_genes

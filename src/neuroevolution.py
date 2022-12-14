@@ -37,6 +37,17 @@ class Neuroevolution:
                                                                                                     self.objectives)
         self.init_reporters_and_checkpoints()
 
+        g = self.pop.population[1]
+        for i in range(20):
+            print(i)
+            g.mutate(self.neat_config.genome_config)
+            net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
+            visualize.draw_net(net, f"{i}_net")
+
+
+        exit(0)
+        # TODO: fix add_connection() mutation to not add edge from output node to hidden node
+
         if self.evaluator is not None:
             evaluator = self.evaluator(mp.cpu_count()//6, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate, n=self.num_generations)
