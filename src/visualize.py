@@ -101,8 +101,8 @@ def draw_net(net, filename, node_names={}, node_colors={}):
         'width': '0.2'}
 
     dot = graphviz.Digraph('svg',
-                           graph_attr={'ranksep': "1.5 equally",
-                                       'root': f"{net.input_nodes[len(net.output_nodes)//2]}"},
+                           graph_attr={'nodesep': '0.1',
+                                       'ranksep': '0.75'},
                            node_attr=node_attrs)
 
     with dot.subgraph() as s:
@@ -111,48 +111,88 @@ def draw_net(net, filename, node_names={}, node_colors={}):
             name = node_names.get(k, str(k))
             input_attrs = {'style': 'filled',
                            'fillcolor': "#FFB000",
-                           'label': name,
+                           'label': '',
                            'fixedsize': 'true',
-                           'width': '0.5',
-                           'height': '0.5'}
+                           'width': '0.25',
+                           'height': '0.25'}
             s.node(name, _attributes=input_attrs)
 
     with dot.subgraph() as s:
-        s.attr(rank="max")
+        s.attr(rank="same")
         for k in sorted(net.output_nodes):
             name = node_names.get(k, str(k))
             output_attrs = {'style': 'filled',
                             'fillcolor': "#DC267F",
-                            'label': name,
+                            'label': '',
                             'fixedsize': 'true',
-                            'width': '0.5',
-                            'height': '0.5'}
+                            'width': '0.25',
+                            'height': '0.25'}
             s.node(name, _attributes=output_attrs)
 
-    with dot.subgraph() as s:
-        for node, _, _, _, _, links in net.node_evals:
-            if node not in net.output_nodes:
-                name = node_names.get(node, str(node))
-                hidden_attrs = {'style': 'filled',
-                                'fillcolor': "#648FFF",
-                                'label': name,
-                                'fixedsize': 'true',
-                                'width': '0.5',
-                                'height': '0.5'}
-                s.node(name, _attributes=hidden_attrs)
+    edges = []
+    for node, _, _, _, _, links in net.node_evals:
+        for i, _ in links:
+            edges.append((i, node))
 
-            for i, w in links:
-                node_input, output = node, i
-                a = node_names.get(output, str(output))
-                b = node_names.get(node_input, str(node_input))
-                style = 'solid'
-                color = 'black'
-                dot.edge(a, b, _attributes={
-                         'style': style, 'color': color, 'dir':"forward"})
+    hidden_layers = [[]]
+    current_layer = [*net.input_nodes]
+    next_layer = []
 
+    i = 1
+    while len(current_layer) > 0:
+        for edge in edges:
+            if edge[0] in current_layer:
+                if edge[1] not in next_layer and edge[1] not in net.output_nodes:
+                    next_layer.append(edge[1])
+                    for layer in hidden_layers[:i]:
+                        if edge[1] in layer:
+                            layer.remove(edge[1])
+
+        hidden_layers.append(next_layer)
+        current_layer = next_layer
+        next_layer = []
+        i += 1
+
+    print(filename)
+    for i, layer in enumerate(hidden_layers):
+        print(f"layer {i}: {layer}")
+    print()
+
+    for layer in hidden_layers:
+        with dot.subgraph() as s:
+            s.attr(rank="same")
+            for node, _, _, _, _, links in net.node_evals:
+                if node in layer and node not in net.output_nodes:
+                    name = node_names.get(node, str(node))
+                    hidden_attrs = {'style': 'filled',
+                                    'fillcolor': "#648FFF",
+                                    'label': '',
+                                    'fixedsize': 'true',
+                                    'width': '0.25',
+                                    'height': '0.25'}
+                    s.node(name, _attributes=hidden_attrs)
+
+    input_nodes = sorted(net.input_nodes)
+    for i in range(1, len(input_nodes)):
+        dot.edge(str(input_nodes[i-1]), str(input_nodes[i]), _attributes={'style': 'invisible',
+                                                                          'color': 'white',
+                                                                          'arrowhead': 'none'})
+
+    output_nodes = sorted(net.output_nodes)
+    for i in range(1, len(output_nodes)):
+        dot.edge(str(output_nodes[i-1]), str(output_nodes[i]), _attributes={'style': 'invisible',
+                                                                            'color': 'white',
+                                                                            'arrowhead': 'none'})
+
+    for i, j in edges:
+        a = node_names.get(i, str(i))
+        b = node_names.get(j, str(j))
+        style = 'solid'
+        color = 'black'
+        dot.edge(a, b, _attributes={
+                 'style': style, 'color': color, 'dir':'forward', 'arrowhead': 'none'})
 
     dot.render(filename)
-
     return dot
 
 if __name__=="__main__":

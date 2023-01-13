@@ -8,7 +8,7 @@ class XORSimulator(Simulator):
         self.xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
         self.xor_outputs = [(0.0,), (1.0,), (1.0,), (0.0,)]
             
-    def simulate(self, genome_id, genome, neural_network, generation):
+    def simulate(self, neural_network):
 
         all_activations = None
         if self.CKA is not None:

@@ -10,10 +10,9 @@ class RetinaSimulator(Simulator):
         super().__init__(objectives)
         self.env = RetinaEnvironment()
 
-    def simulate(self, genome_id, genome, neural_network, generation):
+    def simulate(self, **kwargs):
 
-        #print(f"process_id: {multiprocessing.current_process()}, genome_id: {genome_id}")
-        error_sum = 0.0
+        neural_network = kwargs["neural_network"]
 
         all_activations = None
         if self.CKA is not None:
@@ -25,6 +24,7 @@ class RetinaSimulator(Simulator):
 
         # Evaluate the detector ANN against 256 combintaions of the left and the right visual objects
         # at correct and incorrect sides of retina
+        error_sum = 0.0
         for left in self.env.visual_objects:
             for right in self.env.visual_objects:
                 error, net_input, net_output, activations = RetinaSimulator._evaluate(neural_network, left, right)
@@ -38,7 +38,7 @@ class RetinaSimulator(Simulator):
                 if self.CKA is not None:
                     all_activations.append(activations)
 
-        
+
         # calculate the task performance score
         task_performance = 1.0 - float(error_sum/256.0)
 
@@ -59,7 +59,6 @@ class RetinaSimulator(Simulator):
         inputs.append(0.5) # the bias
 
         # activate
-        # TODO: "activations" output is currently None, change nn to also return all activations
         network_output, activations = neural_network.activate(inputs)
 
         # get outputs

@@ -1,5 +1,4 @@
 import os
-import copy
 from scipy.spatial import distance
 from simulation.simulator import Simulator
 from simulation.environments.maze.maze_environment import read_environment
@@ -20,11 +19,52 @@ class MazeSimulator(Simulator):
 
         self.MAX_TIME_STEPS = 400
 
-    def simulate(self, genome_id, genome, neural_network, generation):
+    def simulate(self, neural_network):
 
-        maze = copy.deepcopy(self.env)
+        all_activations = None
+        if self.CKA is not None:
+            all_activations = []
+
+        sequence = None
+        if self.hamming is not None:
+            sequence = []
+
+        exit_found = False
+
+        for i in range(self.MAX_TIME_STEPS):
+
+            # activate
+            state = self.env.create_net_inputs()
+            output, activations = neural_network.activate(state)
+
+            # step
+            exit_found = self.env.update(output)
+
+            # save sequence if using hamming distance
+            if self.hamming is not None:
+                sequence.extend([*state, *output])
+
+            # append activations if using CKA
+            if self.CKA is not None:
+                all_activations.append(activations)
+
+            if exit_found:
+                break
+
+        novelty = self._get_novelty_characteristic(None)
+
+        # Calculate the fitness score based on distance from exit
+        task_performance = 1.0
+        if not exit_found:
+            # Normalize distance to range (0,1]
+            distance_to_exit = self.env.agent_distance_to_exit()
+            task_performance = (self.env.initial_distance - distance_to_exit) / self.env.initial_distance
+
+        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
+
+    def simulate(self, genome_id, neural_network):
+
         task_performance, sequence, all_activations, novelty = self.maze_simulation_evaluate(
-                                                                            env=maze,
                                                                             genome=genome,
                                                                             net=neural_network,
                                                                             time_steps=self.MAX_TIME_STEPS)
@@ -40,90 +80,5 @@ class MazeSimulator(Simulator):
         # [performance, hamming, novelty, CKA, Q]
         return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
 
-    def maze_simulation_evaluate(self, env, genome, net, time_steps, path_points=None):
-        """
-        The function to evaluate maze simulation for specific environment
-        and control ANN provided. The results will be saved into provided
-        agent record holder.
-        Arguments:
-            env:            The maze configuration environment.
-            genome:         The genome of individual.
-            net:            The maze solver agent's control ANN.
-            time_steps:     The number of time steps for maze simulation.
-            path_points:    The holder for path points collected during simulation. If
-                            provided None then nothing will be collected.
-        Returns:
-            The goal-oriented fitness value, i.e., how close is agent to the exit at
-            the end of simulation.
-        """
-
-        all_activations = None
-        if self.CKA is not None:
-            all_activations = []
-
-        sequence = None
-        if self.hamming is not None:
-            sequence = []
-
-        exit_found = False
-        for i in range(time_steps):
-            network_inputs = env.create_net_inputs()
-            network_output, activations = net.activate(network_inputs)
-            exit_found = env.update(network_output)
-
-            # save sequence if using hamming distance
-            if self.hamming is not None:
-                sequence.extend([*network_inputs, *network_output])
-
-            # append activations if using CKA
-            if self.CKA is not None:
-                all_activations.append(activations)
-
-            if exit_found:
-                print("Maze solved in %d steps" % (i + 1))
-                break
-
-            if path_points is not None:
-                # collect current position
-                path_points.append(Point(env.agent.location.x, env.agent.location.y))
-
-        # store final agent coordinates as genome's novelty characteristics
-        novelty = [env.agent.location.x, env.agent.location.y]
-
-        # Calculate the fitness score based on distance from exit
-        fitness = 0.0
-        if exit_found:
-            fitness = 1.0
-        else:
-            # Normalize distance to range (0,1]
-            distance_to_exit = env.agent_distance_to_exit()
-            fitness = (env.initial_distance - distance_to_exit) / env.initial_distance
-
-        return fitness, sequence, all_activations, novelty
-
-    @staticmethod
-    def novelty_metric(first_item, second_item):
-        if not (hasattr(first_item, "data") or hasattr(second_item, "data")):
-            return NotImplemented
-
-        if len(first_item.data) != len(second_item.data):
-            # can not be compared
-            return 0.0
-
-        diff_accum = 0.0
-        size = len(first_item.data)
-        for i in range(size):
-            diff = abs(first_item.data[i] - second_item.data[i])
-            diff_accum += diff
-
-        return diff_accum / float(size)
-
-    @staticmethod
-    def novelty_metric_euclidean_distance(first_item, second_item):
-        if not hasattr(first_item, "data") or not hasattr(second_item, "data"):
-            return NotImplemented
-
-        if len(first_item.data) != len(second_item.data):
-            return 0.0
-
-        return distance.euclidean(first_item.data, second_item.data)
+    def _get_novelty_characteristic(self, neural_network):
+        return [self.env.agent.location.x, self.env.agent.location.y]

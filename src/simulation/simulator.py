@@ -4,6 +4,8 @@ import numpy as np
 from objectives.hamming import Hamming
 from objectives.novelty_v2 import Novelty
 from objectives.cka import CKA
+from objectives.modularity import Modularity, ModularDiversity
+
 
 class Simulator:
 
@@ -12,43 +14,34 @@ class Simulator:
         self.num_objectives = len(self.objectives)
 
         # performance objective
-        self.performance = None
+        self.performance = {} if "performance" in self.objectives else None
 
         # structural diversity objective
-        self.Q = None # TODO: structural or behavioral?
+        self.Q = Modularity() if "modularity" in self.objectives else None
+        self.ModDiv = ModularDiversity() if "mod_div" in self.objectives else None
 
         # behavioral diversity objective
-        self.hamming = None
-        self.novelty = None
+        self.hamming = Hamming() if "hamming" in self.objectives else None
+        self.novelty = Novelty() if "beh_div" in self.objectives else None
 
-        # representation diversity objective
+        # representational diversity objective
         self.CKA = None
-
-        if "performance" in self.objectives:
-            self.performance = {}
-
-        if "hamming" in self.objectives:
-            self.hamming = Hamming()
-
-        if "beh_div" in self.objectives:
-            self.novelty = Novelty()
-
         if "linear_cka" in self.objectives:
             self.CKA = CKA(linear_kernel=True)
         elif "rbf_cka" in self.objectives:
             self.CKA = CKA(linear_kernel=False)
 
-    def evaluate_genomes(self, genomes, config, generation):
+    def evaluate_genomes(self, genomes, config):
         for genome_id, genome in genomes:
             neural_network = neat.nn.FeedForwardNetwork.create(genome, config)
             genome.fitness = neat.nsga2.NSGA2Fitness(*[0.0]*self.num_objectives)
 
-            simulation_output = self.simulate(genome_id, genome, neural_network, generation)
+            simulation_output = self.simulate(neural_network)
             self._assign_output(genome_id, simulation_output)
 
         self.assign_fitness(genomes)
 
-    def simulate(self, genome_id, genome, neural_network, generation):
+    def simulate(self, neural_network):
         raise NotImplementedError
 
     def assign_fitness(self, genomes):
@@ -94,6 +87,9 @@ class Simulator:
 
         if self.Q is not None:
             pass
+
+    def _get_novelty_characteristic(self, neural_network):
+        raise NotImplementedError
 
     @staticmethod
     def _binarize_sequence(sequence):

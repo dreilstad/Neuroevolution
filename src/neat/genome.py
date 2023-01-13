@@ -288,7 +288,7 @@ class DefaultGenome(object):
                 self.mutate_add_connection(config)
             elif r < ((config.node_add_prob + config.node_delete_prob +
                        config.conn_add_prob + config.conn_delete_prob)/div):
-                self.mutate_delete_connection()
+                self.mutate_delete_connection(config)
         else:
             if random() < config.node_add_prob:
                 self.mutate_add_node(config)
@@ -300,7 +300,7 @@ class DefaultGenome(object):
                 self.mutate_add_connection(config)
 
             if random() < config.conn_delete_prob:
-                self.mutate_delete_connection()
+                self.mutate_delete_connection(config)
 
         # Mutate connection genes.
         for cg in self.connections.values():
@@ -348,32 +348,25 @@ class DefaultGenome(object):
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input pins.
         """
-        possible_outputs = list(self.nodes)
-        out_node = choice(possible_outputs)
+        possible_to_node = list(self.nodes)
+        possible_from_node = [node for node in possible_to_node if node not in config.output_keys] + config.input_keys
 
-        possible_inputs = possible_outputs + config.input_keys
-        in_node = choice(possible_inputs)
+        from_node = choice(possible_from_node)
+        to_node = choice(possible_to_node)
 
         # Don't duplicate connections.
-        key = (in_node, out_node)
+        key = (from_node, to_node)
         if key in self.connections:
             # TODO: Should this be using mutation to/from rates? Hairy to configure...
             if config.check_structural_mutation_surer():
                 self.connections[key].enabled = True
             return
 
-        # Don't allow connections between two output nodes
-        if in_node in config.output_keys and out_node in config.output_keys:
-            return
-
-        # No need to check for connections between input nodes:
-        # they cannot be the output end of a connection (see above).
-
         # For feed-forward networks, avoid creating cycles.
         if config.feed_forward and creates_cycle(list(self.connections), key):
             return
 
-        cg = self.create_connection(config, in_node, out_node)
+        cg = self.create_connection(config, from_node, to_node)
         self.connections[cg.key] = cg
 
     def mutate_delete_node(self, config):
@@ -388,53 +381,80 @@ class DefaultGenome(object):
         # find all removable nodes (i.e. nodes with only 1 input and 1 output)
         removable_nodes = []
         for node_id in available_nodes:
-            print(f"node: {node_id}")
+            # input and output edge counter for each node
             num_input = 0
             num_output = 0
+
+            # saving edges to remove and edge to add if deleting a node
             edge_to_add = [None, None]
             edges_to_remove = []
-            for connection, gene in self.connections.items():
-                if gene.enabled:
-                    if node_id == connection[1]:
-                        print(f"    in_edge: {connection}")
-                        num_input += 1
-                        edge_to_add[0] = connection[0]
-                        edges_to_remove.append(connection)
-                    if node_id == connection[0]:
-                        print(f"    out_edge: {connection}")
-                        num_output += 1
-                        edge_to_add[1] = connection[1]
-                        edges_to_remove.append(connection)
 
+            # check input and output edges for
+            for connection, _ in self.connections.items():
+                if node_id == connection[1]:
+                    num_input += 1
+                    edge_to_add[0] = connection[0]
+                    edges_to_remove.append(connection)
+                if node_id == connection[0]:
+                    num_output += 1
+                    edge_to_add[1] = connection[1]
+                    edges_to_remove.append(connection)
 
-            print(f"    num_input: {num_input}")
-            print(f"    num_output: {num_output}")
             # add node and edge to add if removed
             if num_input == 1 and num_output == 1:
                 removable_nodes.append((node_id, tuple(edge_to_add), edges_to_remove))
 
-        print(self.connections.keys())
-        print([v.enabled for v in self.connections.values()])
-        print(removable_nodes)
-        return -1
-        del_key = choice(available_nodes)
+        # do nothing if there are no valid nodes to remove
+        if not removable_nodes:
+            return -1
 
-        connections_to_delete = set()
-        for k, v in self.connections.items():
-            if del_key in v.key:
-                connections_to_delete.add(v.key)
+        # randomly choose node to remove from list of valid nodes
+        node_to_remove = choice(removable_nodes)
 
-        for key in connections_to_delete:
+        # remove in and out edge from node
+        for key in node_to_remove[2]:
             del self.connections[key]
 
-        del self.nodes[del_key]
+        # remove node
+        del self.nodes[node_to_remove[0]]
 
-        return del_key
+        # replace removed node with edge
+        if node_to_remove[1] not in self.connections:
+            new_edge = self.create_connection(config, node_to_remove[1][0], node_to_remove[1][1])
+            self.connections[new_edge.key] = new_edge
 
-    def mutate_delete_connection(self):
+        return node_to_remove[0]
+
+    def mutate_delete_connection(self, config):
         if self.connections:
-            key = choice(list(self.connections.keys()))
-            del self.connections[key]
+
+            all_nodes = list(self.nodes) + config.input_keys
+
+            node_multiple_in_edges = []
+            node_multiple_out_edges = []
+            for node in all_nodes:
+                num_in_edges = 0
+                num_out_edges = 0
+                for connection in self.connections.keys():
+                    if connection[1] == node:
+                        num_in_edges += 1
+                    if connection[0] == node:
+                        num_out_edges += 1
+
+                if num_in_edges > 1:
+                    node_multiple_in_edges.append(node)
+
+                if num_out_edges > 1:
+                    node_multiple_out_edges.append(node)
+
+            possible_edges_to_remove = []
+            for connection in self.connections.keys():
+                if connection[1] in node_multiple_in_edges and connection[0] in node_multiple_out_edges:
+                    possible_edges_to_remove.append(connection)
+
+            if len(possible_edges_to_remove) > 0:
+                key = choice(possible_edges_to_remove)
+                del self.connections[key]
 
     def distance(self, other, config):
         """

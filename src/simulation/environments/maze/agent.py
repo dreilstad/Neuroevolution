@@ -44,13 +44,13 @@ class AgentRecord:
     solver agent. It provides all statistics about the agent at the end
     of navigation run.
     """
-    def __init__(self, generation, agent_id):
+    def __init__(self):
         """
         Creates new record for specific agent at the specific generation
         of the evolutionary process.
         """
-        self.generation = generation
-        self.agent_id = agent_id
+        self.generation = -1
+        self.agent_id = -1
         # initialize agent's properties
         self.x = -1
         self.y = -1

@@ -12,7 +12,7 @@ class Neuroevolution:
     def __init__(self, domain, simulator, objectives, config_file, num_generations, show, evaluator=None):
         self.domain = domain
         self.objectives = objectives
-        self.simulator = simulator(self.objectives)
+        self.simulator = simulator
         self.config_file = config_file
         self.num_generations = num_generations
         self.show = show
@@ -36,20 +36,20 @@ class Neuroevolution:
         self.results_data_path, self.results_plot_path, self.checkpoint_path = make_new_run_folders(self.domain,
                                                                                                     self.objectives)
         self.init_reporters_and_checkpoints()
-
         g = self.pop.population[1]
-        for i in range(20):
-            print(i)
+        for i in range(101):
             g.mutate(self.neat_config.genome_config)
-            net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
-            visualize.draw_net(net, f"{i}_net")
+            if i % 10 == 0:
+                net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
+                visualize.draw_net(net, f"{i}_net")
 
 
         exit(0)
-        # TODO: fix add_connection() mutation to not add edge from output node to hidden node
+        """
+        """
 
         if self.evaluator is not None:
-            evaluator = self.evaluator(mp.cpu_count()//6, self.simulator)
+            evaluator = self.evaluator(2, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate, n=self.num_generations)
         else:
             best_genome = self.pop.run(self.simulator.evaluate_genomes, n=self.num_generations)
@@ -59,7 +59,7 @@ class Neuroevolution:
     def save_stats(self):
 
         # save record store data
-        if self.domain == "mazerobot":
+        if self.domain == "mazerobot-medium" or self.domain == "mazerobot-hard":
             record_store_save_file = os.path.join(self.results_data_path, "agent_record_data.pickle")
             self.simulator.history.dump(record_store_save_file)
 
@@ -96,8 +96,12 @@ class Neuroevolution:
                 visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Retina",
                                          labels[self.objectives[0]], labels[self.objectives[1]],
                                          1.0, 10000.0, show=self.show)
-            elif self.domain == "mazerobot":
-                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Mazerobot",
+            elif self.domain == "mazerobot-medium":
+                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Maze navigation - Medium maze",
+                                         labels[self.objectives[0]], labels[self.objectives[1]],
+                                         13.5, 10000.0, show=self.show)
+            elif self.domain == "mazerobot-hard":
+                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Maze navigation - Hard maze",
                                          labels[self.objectives[0]], labels[self.objectives[1]],
                                          13.5, 10000.0, show=self.show)
             elif self.domain == "bipedal":

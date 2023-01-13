@@ -11,6 +11,7 @@ def main(domain, simulator, objectives, config_file, num_generations, show, para
 
     num_experiments = 25
     for _ in range(num_experiments):
+        print(type(simulator))
         ne = Neuroevolution(domain, simulator, objectives, config_file,
                             num_generations, show, evaluator=evaluator)
         winner = ne.run()
@@ -56,7 +57,31 @@ if __name__=="__main__":
     print(args.objectives)
     print(args.show)
     print(args.parallel)
-
     simulator, config, objectives, num_generations = validate_input(args)
 
     main(args.domain, simulator, objectives, config, num_generations, args.show, args.parallel)
+    """
+
+    from simulation.environments.tartarus.tartarus_environment import TartarusEnvironment
+    from simulation.environments.tartarus.minigrid.manual_control import ManualControl
+    from simulation.environments.tartarus.tartarus_util import generate_configurations
+    import numpy as np
+
+    N_size = 6
+    K_boxes = 6
+    configs = generate_configurations(N_size, K_boxes)
+    env = TartarusEnvironment(configs[np.random.randint(len(configs))])
+    env.reset()
+    env.agent_view_size = 3
+
+    print(env.encode_tartarus_state())
+    print(env.encode_tartarus_state_with_walls())
+    print(f"performance score: {env.state_evaluation()}")
+
+    manual_control = ManualControl(env=env, agent_view=False)
+    manual_control.start()
+
+    print(f"performance score: {env.state_evaluation()}")
+    print(env.encode_tartarus_state())
+    print(env.encode_tartarus_state_with_walls())
+    """

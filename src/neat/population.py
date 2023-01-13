@@ -63,7 +63,7 @@ class Population(object):
             self.reporters.start_generation(self.generation)
 
             # Evaluate all genomes using the user-provided function.
-            fitness_function(list(self.population.items()), self.config, self.generation)
+            fitness_function(list(self.population.items()), self.config)
 
             # Call sorting method of NSGA2Reproduction
             # This is the only modification made to the main code, so the best
