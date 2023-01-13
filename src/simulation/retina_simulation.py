@@ -6,13 +6,11 @@ from simulation.environments.retina.retina_environment import RetinaEnvironment,
 class RetinaSimulator(Simulator):
 
     def __init__(self, objectives):
-        self.metric = self.novelty_metric
         super().__init__(objectives)
         self.env = RetinaEnvironment()
+        self.domain = "retina"
 
-    def simulate(self, **kwargs):
-
-        neural_network = kwargs["neural_network"]
+    def simulate(self, neural_network):
 
         all_activations = None
         if self.CKA is not None:
@@ -38,7 +36,6 @@ class RetinaSimulator(Simulator):
                 if self.CKA is not None:
                     all_activations.append(activations)
 
-
         # calculate the task performance score
         task_performance = 1.0 - float(error_sum/256.0)
 
@@ -46,7 +43,11 @@ class RetinaSimulator(Simulator):
         novelty = self._get_novelty_characteristic(neural_network)
 
         # [performance, hamming, novelty, CKA, Q]
-        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
+        #return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
+        return {"performance": task_performance,
+                "hamming": self._binarize_sequence(sequence),
+                "novelty": novelty,
+                "CKA": all_activations}
 
     @staticmethod
     def _evaluate(neural_network, left, right):

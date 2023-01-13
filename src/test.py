@@ -1,17 +1,9 @@
-import numpy as np
-from simulation.tartarus_simulation import TartarusSimulator
-from multiprocessing import Pool
 
-objectives = ["performance"]
-nn = [1,2,3]
-pool = Pool(2)
-jobs = []
-sim = TartarusSimulator(objectives)
-for i in range(2):
-    jobs.append(pool.apply_async(sim.simulate, (nn)))
+p = {}
+A = list()
+B = None
 
-# assign the fitness back to each genome
-for job in jobs:
-    job.get(timeout=None)
+p[1] = "A" if A is not None
+p[2] = "B" if B is not None
 
-
+print(p)

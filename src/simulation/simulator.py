@@ -12,6 +12,7 @@ class Simulator:
     def __init__(self, objectives):
         self.objectives = objectives
         self.num_objectives = len(self.objectives)
+        self.domain = ""
 
         # performance objective
         self.performance = {} if "performance" in self.objectives else None
@@ -31,13 +32,16 @@ class Simulator:
         elif "rbf_cka" in self.objectives:
             self.CKA = CKA(linear_kernel=False)
 
+        # initialized when simulating Mazerobot
+        self.history = None
+
     def evaluate_genomes(self, genomes, config):
         for genome_id, genome in genomes:
             neural_network = neat.nn.FeedForwardNetwork.create(genome, config)
             genome.fitness = neat.nsga2.NSGA2Fitness(*[0.0]*self.num_objectives)
 
             simulation_output = self.simulate(neural_network)
-            self._assign_output(genome_id, simulation_output)
+            self.assign_output(genome_id, simulation_output)
 
         self.assign_fitness(genomes)
 
@@ -47,7 +51,7 @@ class Simulator:
     def assign_fitness(self, genomes):
         # do calculation of objectives which need genome-to-population comparison
         if self.hamming is not None:
-            self.hamming.assign_hamming_distances(genomes)
+            self.hamming.calculate_hamming_distances(genomes)
         if self.novelty is not None:
             self.novelty.calculate_novelty(genomes)
         if self.Q is not None:
@@ -72,21 +76,26 @@ class Simulator:
 
             genome.fitness.add(*fitnesses)
 
-    def _assign_output(self, genome_id, simulation_output):
+    def assign_output(self, genome_id, simulation_output):
         if self.performance is not None:
-            self.performance[genome_id] = simulation_output[0]
+            self.performance[genome_id] = simulation_output["performance"]
 
         if self.hamming is not None:
-            self.hamming.sequences[genome_id] = simulation_output[1]
+            self.hamming.sequences[genome_id] = simulation_output["hamming"]
 
         if self.novelty is not None:
-            self.novelty.behaviors[genome_id] = simulation_output[2]
+            self.novelty.behaviors[genome_id] = simulation_output["novelty"]
 
         if self.CKA is not None:
-            self.CKA.activations[genome_id] = np.array(simulation_output[3])
+            self.CKA.activations[genome_id] = np.array(simulation_output["CKA"])
 
         if self.Q is not None:
             pass
+
+        if self.domain == "mazerobot-medium" or self.domain == "mazerobot-hard":
+            record = simulation_output["agent_record"]
+            record.agent_id = genome_id
+            self.history.add_record(record)
 
     def _get_novelty_characteristic(self, neural_network):
         raise NotImplementedError

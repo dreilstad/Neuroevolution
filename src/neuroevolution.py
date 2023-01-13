@@ -35,6 +35,7 @@ class Neuroevolution:
     def run(self):
         self.results_data_path, self.results_plot_path, self.checkpoint_path = make_new_run_folders(self.domain,
                                                                                                     self.objectives)
+        """
         self.init_reporters_and_checkpoints()
         g = self.pop.population[1]
         for i in range(101):
@@ -46,10 +47,9 @@ class Neuroevolution:
 
         exit(0)
         """
-        """
 
         if self.evaluator is not None:
-            evaluator = self.evaluator(2, self.simulator)
+            evaluator = self.evaluator(mp.cpu_count()//6, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate, n=self.num_generations)
         else:
             best_genome = self.pop.run(self.simulator.evaluate_genomes, n=self.num_generations)

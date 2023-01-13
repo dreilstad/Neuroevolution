@@ -11,7 +11,7 @@ class Hamming:
     def __getitem__(self, key):
         return self.hamming[key]
 
-    def assign_hamming_distances(self, genomes):
+    def calculate_hamming_distances(self, genomes):
         distances = {genome_id: 0.0 for genome_id, _ in genomes}
         for (genome_A_id, genome_A), (genome_B_id, genome_B) in combinations(genomes, 2):
             dist = Hamming.hamming_distance(self.sequences[genome_A_id], self.sequences[genome_B_id])

@@ -5,6 +5,7 @@ in order to evaluate multiple genomes at once.
 import neat
 import numpy as np
 from multiprocessing import Pool
+from simulation.environments.maze.agent import AgentRecord
 
 
 class ParallelEvaluator(object):
@@ -48,25 +49,6 @@ class MultiObjectiveParallelEvaluator(ParallelEvaluator):
 
         for job, (genome_id, genome) in zip(jobs, genomes):
             simulation_output = job.get(timeout=self.timeout)
-            self._assign_output(genome_id, simulation_output)
+            self.simulator.assign_output(genome_id, simulation_output)
 
         self.simulator.assign_fitness(genomes)
-
-    def _assign_output(self, genome_id, simulation_output):
-        if self.simulator.performance is not None:
-            self.simulator.performance[genome_id] = simulation_output[0]
-
-        if self.simulator.hamming is not None:
-            self.simulator.hamming.sequences[genome_id] = simulation_output[1]
-
-        if self.simulator.novelty is not None:
-            self.simulator.novelty.behaviors[genome_id] = simulation_output[2]
-
-        if self.simulator.CKA is not None:
-            self.simulator.CKA.activations[genome_id] = np.array(simulation_output[3])
-
-        if self.simulator.Q is not None:
-            pass
-
-
-

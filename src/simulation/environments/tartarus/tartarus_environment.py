@@ -51,7 +51,7 @@ class TartarusEnvironment(MiniGridEnv):
         boxes = []
         for i in range(1, self.N-1):
             for j in range(1, self.N-1):
-                if self.configuration[i][j]:
+                if self.configuration[i][j] == 1:
                     self.place_obj(
                         obj=Box("brown"),
                         top=(j+1, i+1),
@@ -102,6 +102,41 @@ class TartarusEnvironment(MiniGridEnv):
     def state_evaluation(self):
         """
         Compute state evaluation
+        """
+        performance_score = 0.0
+
+        # check corners
+        corners = [(1,1), (1,self.N), (self.N, 1), (self.N, self.N)]
+        for corner in corners:
+            cell = self.grid.get(*corner)
+            if cell is not None and cell.type == "box":
+                performance_score += 2.0
+
+        # check top and bottom borders
+        for j in range(2, self.N):
+            top_cell = self.grid.get(1, j)
+            bottom_cell = self.grid.get(self.N, j)
+
+            if top_cell is not None and top_cell.type == "box":
+                performance_score += 1.0
+            if bottom_cell is not None and bottom_cell.type == "box":
+                performance_score += 1.0
+
+        # check left and right borders
+        for i in range(2, self.N):
+            left_cell = self.grid.get(i, 1)
+            right_cell = self.grid.get(i, self.N)
+
+            if left_cell is not None and left_cell.type == "box":
+                performance_score += 1.0
+            if right_cell is not None and right_cell.type == "box":
+                performance_score += 1.0
+
+        return performance_score
+
+    def improved_state_evaluation(self):
+        """
+        Compute proposed improved state evaluation
         """
 
         sum_distance_to_edge = 0.0

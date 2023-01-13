@@ -9,6 +9,7 @@ class TartarusSimulator(Simulator):
     def __init__(self, objectives, N=6, K=6):
         super().__init__(objectives)
         self.configurations, self.test_config = generate_configurations(N, K, sample_size=1000)
+        self.domain = "tartarus"
         # 8 input nodes (NW, N, NE, W, E, SW, S, SE) or
         # 11 input nodes (NW, N, NE, W, E, SW, S, SE, left, right, forward)
         # 3 output nodes (left, right, forward)
@@ -29,6 +30,7 @@ class TartarusSimulator(Simulator):
             print(f"config {i}")
             env = TartarusEnvironment(configuration)
             state, _ = env.reset()
+            state.extend([0, 0, 0])
 
             terminated = False
             truncated = False
@@ -50,6 +52,11 @@ class TartarusSimulator(Simulator):
                 # step
                 state, reward, terminated, truncated, info = env.step(action)
 
+                # one-hot encode network output to use as input next iteration
+                output_one_hot = [0, 0, 0]
+                output_one_hot[action] = 1
+                state.extend([output_one_hot])
+
             task_performance += env.state_evaluation()
 
         novelty = self._get_novelty_characteristic(neural_network)
@@ -57,7 +64,10 @@ class TartarusSimulator(Simulator):
         task_performance = task_performance / len(self.configurations)
 
         # [performance, hamming, novelty, CKA, Q]
-        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
+        return {"performance": task_performance,
+                "hamming": self._binarize_sequence(sequence),
+                "novelty": novelty,
+                "CKA": all_activations}
 
     def _get_novelty_characteristic(self, neural_network):
 

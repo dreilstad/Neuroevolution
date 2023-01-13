@@ -9,6 +9,7 @@ class BipedalWalkerSimulator(Simulator):
         super().__init__(objectives)
         self.env = gym.make("BipedalWalker-v3")
         self.env.reset()
+        self.domain = "bipedal"
         # 24 input nodes
         # 4 output nodes
 
@@ -48,7 +49,10 @@ class BipedalWalkerSimulator(Simulator):
         novelty = self._get_novelty_characteristic(neural_network)
 
         # [performance, hamming, novelty, CKA, Q]
-        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
+        return {"performance": task_performance,
+                "hamming": self._binarize_sequence(sequence),
+                "novelty": novelty,
+                "CKA": all_activations}
 
     def _get_novelty_characteristic(self, neural_network):
         # TODO: change novelty to use output from fixed input

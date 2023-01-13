@@ -1,22 +1,20 @@
 import os
-from scipy.spatial import distance
 from simulation.simulator import Simulator
 from simulation.environments.maze.maze_environment import read_environment
 from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
-from simulation.environments.maze.geometry import Point
 
 
 class MazeSimulator(Simulator):
 
     def __init__(self, objectives, maze_config="medium_maze.txt"):
-        self.metric = self.novelty_metric
         super().__init__(objectives)
 
         local_dir = os.path.dirname(os.path.realpath(__file__))
         maze_config_dir = os.path.join(local_dir, "environments/maze/")
         self.env = read_environment(maze_config_dir + maze_config)
-        self.history = AgentRecordStore()
 
+        self.history = AgentRecordStore()
+        self.domain = f"mazerobot-{maze_config.split('_')[0]}"
         self.MAX_TIME_STEPS = 400
 
     def simulate(self, neural_network):
@@ -60,25 +58,18 @@ class MazeSimulator(Simulator):
             distance_to_exit = self.env.agent_distance_to_exit()
             task_performance = (self.env.initial_distance - distance_to_exit) / self.env.initial_distance
 
-        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
-
-    def simulate(self, genome_id, neural_network):
-
-        task_performance, sequence, all_activations, novelty = self.maze_simulation_evaluate(
-                                                                            genome=genome,
-                                                                            net=neural_network,
-                                                                            time_steps=self.MAX_TIME_STEPS)
-
-        record = AgentRecord(generation=generation, agent_id=genome_id)
+        # create agent record
+        record = AgentRecord()
         record.distance = task_performance
-        record.x = maze.agent.location.x
-        record.y = maze.agent.location.y
-        record.hit_exit = maze.exit_found
-        record.species_id = 1
-        self.history.add_record(record)
+        record.x = self.env.agent.location.x
+        record.y = self.env.agent.location.y
+        record.hit_exit = exit_found
 
-        # [performance, hamming, novelty, CKA, Q]
-        return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
+        return {"performance": task_performance,
+                "hamming": self._binarize_sequence(sequence),
+                "novelty": novelty,
+                "CKA": all_activations,
+                "agent_record": record}
 
     def _get_novelty_characteristic(self, neural_network):
         return [self.env.agent.location.x, self.env.agent.location.y]
