@@ -1,77 +1,137 @@
-from functools import total_ordering
-from scipy.spatial import distance
-
-KNN = 15
-NOVELTY_ARCHIVE_MAX_SIZE = 50
+import numpy as np
+from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
 
 
-class NoveltyArchive:
-    def __init__(self, metric):
-        self.novelty_metric = metric
-        self.novel_items = []
+class Novelty:
 
-    def size(self):
-        return len(self.novel_items)
+    def __init__(self, k=15, initial_threshold=6.0):
+        self.archive = []
+        self.behaviors = {}
+        self.novelty = {}
 
-    def evaluate_novelty_score(self, item, n_items_list):
-        # collect distances among archived novelty items
-        distances = []
-        for nov_item in self.novel_items:
-            if nov_item.genome_id != item.genome_id:
-                distances.append(self.novelty_metric(nov_item, item))
-            else:
-                print("Novelty Item is already in archive: %d" % nov_item.genome_id)
+        self.k = k
+        self.threshold = initial_threshold
 
-        # collect distances to the novelty items in the population
-        for pop_item in n_items_list:
-            if pop_item.genome_id != item.genome_id:
-                distances.append(self.novelty_metric(pop_item, item))
+        self.num_added_to_archive = 0
+        self.evals_since_archive_addition = 0
 
-        # calculate average KNN
-        distances = sorted(distances)
-        item.novelty = sum(distances[:KNN])/KNN
+    def __getitem__(self, key):
+        return self.novelty[key]
 
-        # store novelty item
-        self._add_novelty_item(item)
+    def calculate_novelty(self):
 
-        return item.novelty
+        # reset novelty dict
+        self.novelty = {}
 
-    def write_to_file(self, path):
-        with open(path, "w") as f:
-            for nov_item in self.novel_items:
-                f.write(f"{nov_item}\n")
+        # calculate distances against archive behaviors
+        for genome_id, behavior in self.behaviors.items():
+            distances_archive = self.euclidean_distance_to_archive(behavior)
+            distances_pop = self.euclidean_distance_to_current_pop(behavior)
+            distances = np.concatenate((distances_archive, distances_pop))
 
-    def _add_novelty_item(self, item):
-        item.in_archive = True
+            # sort list of distances to get the k nearest neighbors
+            k = min(len(self.archive), self.k)
+            nearest_neighbors = sorted(distances)[:k]
 
-        if len(self.novel_items) >= NOVELTY_ARCHIVE_MAX_SIZE:
-            if item > self.novel_items[-1]:
-                self.novel_items[-1] = item
+            # calculate novelty and assign score
+            novelty = np.mean(nearest_neighbors)
+            self.novelty[genome_id] = novelty
+
+        print(f"archive size = {len(self.archive)}")
+        # threshold is increased if more than 10 behaviors were added to the archive during the generation
+        if self.num_added_to_archive > 10:
+            self.threshold = self.threshold * 1.05
+
+        print(f"number added to archive = {self.num_added_to_archive}")
+        self.num_added_to_archive = 0
+
+        # threshold is lowered if more than 1000 evaluations occured since last archive addition,
+        # limit from "Novelty-based Multiobjectivization" paper
+        if self.evals_since_archive_addition >= 1000:
+            self.threshold = self.threshold * 0.95
+
+        # reset behavior dict
+        self.behaviors = {}
+
+        print(f"number of evals since last archive addition = {self.evals_since_archive_addition}")
+        print(f"threshold = {self.threshold}")
+
+    def add(self, genome_id, behavior):
+
+        # save behavior
+        self.behaviors[genome_id] = behavior
+
+        # get novelty score and its nearest neighbor
+        novelty, nn_ind = self.novelty_score(behavior)
+
+        if len(self.archive) == 0:
+            self.archive.append((behavior, novelty))
+            return
+
+        # add to archive if novelty greater than threshold,
+        # otherwise check if novelty is larger than its nearest neighbor
+        if novelty > self.threshold:
+            self.archive.append((behavior, novelty))
+            self.num_added_to_archive += 1
+            self.evals_since_archive_addition = 0
         else:
-            self.novel_items.append(item)
+            self.evals_since_archive_addition += 1
+            if nn_ind is not None and novelty > self.archive[nn_ind][1]:
+                self.archive[nn_ind] = (behavior, novelty)
 
-        self.novel_items.sort(reverse=True)
+    def novelty_score(self, behavior, default_novelty=0.1):
+        if len(self.archive) == 0:
+            return default_novelty, None
 
+        # get distance to archive behaviors
+        distances = self.euclidean_distance_to_archive(behavior)
 
-@total_ordering
-class NoveltyItem:
-    def __init__(self, generation=-1, genome_id=-1, novelty=-1):
-        self.generation = generation
-        self.genome_id = genome_id
-        self.novelty = novelty
+        # sort list of distances ot get the k nearest neighbors
+        k = min(len(self.archive), self.k)
+        nearest_neighbors = sorted(zip(distances, list(range(len(self.archive)))))[:k]
+        nearest_neighbors_distances, nearest_neighbors_indices = map(list, zip(*nearest_neighbors))
 
-        self.in_archive = False
-        self.data = []
+        # calculate novelty
+        novelty = np.mean(nearest_neighbors_distances)
 
-    def __str__(self):
-        return f"NoveltyItem: id: {self.genome_id}, at generation: {self.generation},\
-                              novelty: {self.novelty}\tdata: {self.data}"
+        # get index of nearest neighbor
+        nearest_neighbor_ind = None
+        if len(nearest_neighbors_indices) > 0:
+            nearest_neighbor_ind = nearest_neighbors_indices[0]
 
-    def _is_valid_operand(self, other):
-        return hasattr(other, "novelty")
+        return novelty, nearest_neighbor_ind
 
-    def __lt__(self, other):
-        if not self._is_valid_operand(other):
-            return NotImplemented
+    def write_archive_to_file(self, filename):
 
-        return self.novelty < other.novelty
+        history = AgentRecordStore()
+
+        for behavior, _ in self.archive:
+            record = AgentRecord()
+            record.x = behavior[0]
+            record.y = behavior[1]
+            history.add_record(record)
+
+        history.dump(filename)
+
+    def euclidean_distance_to_archive(self, behavior):
+        distances = np.zeros(len(self.archive))
+        for i, (other_behavior, _) in enumerate(self.archive):
+            distances[i] = self.euclidean_distance(behavior, other_behavior)
+
+        distances = np.power(distances, 0.5)
+        return distances
+
+    def euclidean_distance_to_current_pop(self, behavior):
+        distances = np.zeros(len(self.behaviors))
+        for i, (_, other_behavior) in enumerate(self.behaviors.items()):
+            distances[i] = self.euclidean_distance(behavior, other_behavior)
+
+        distances = np.power(distances, 0.5)
+        return distances
+
+    @staticmethod
+    def euclidean_distance(vec, other):
+        distance = 0
+        for i in range(len(vec)):
+            distance += pow(vec[i] - other[i], 2.0)
+        return distance
