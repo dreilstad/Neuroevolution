@@ -1,16 +1,13 @@
-import copy
-import warnings
 import random
 import argparse
 import os
 
-import graphviz
 import matplotlib.pyplot as plt
 import numpy as np
 
-import geometry
-import agent
-import maze_environment as maze
+import simulation.environments.maze.geometry as geometry
+from simulation.environments.maze.agent import AgentRecordStore
+from simulation.environments.maze.maze_environment import read_environment
 
 
 def draw_agent_path(maze_env, path_points, genome, filename=None, view=False, show_axes=False, width=400, height=400,
@@ -62,8 +59,8 @@ def draw_agent_path(maze_env, path_points, genome, filename=None, view=False, sh
     plt.close()
 
 
-def draw_maze_records(maze_env, records, best_threshold=0.8, filename=None, view=False, show_axes=False, width=400,
-                      height=400, fig_height=7):
+def draw_maze_records(maze_env, records, best_threshold=0.8, filename=None, show_axes=False, width=140,
+                      height=300, fig_height=7):
     """
     The function to draw maze with recorded agents positions.
     Arguments:
@@ -78,69 +75,47 @@ def draw_maze_records(maze_env, records, best_threshold=0.8, filename=None, view
     """
     # find the distance threshold for the best species
     dist_threshold = maze_env.agent_distance_to_exit() * (1.0 - best_threshold)
-    # generate color palette and find the best species IDS
-    max_sid = 0
-    for r in records:
-        if r.species_id > max_sid:
-            max_sid = r.species_id
-    colors = [None] * (max_sid + 1)
-    sp_idx = [False] * (max_sid + 1)
-    best_sp_idx = [0] * (max_sid + 1)
-    for r in records:
-        if not sp_idx[r.species_id]:
-            sp_idx[r.species_id] = True
-            rgb = (random.random(), random.random(), random.random())
-            colors[r.species_id] = rgb
-        if maze_env.exit_point.distance(geometry.Point(r.x, r.y)) <= dist_threshold:
-            best_sp_idx[r.species_id] += 1
 
     # initialize plotting
     fig = plt.figure()
-    fig.set_dpi(100)
-    fig_width = fig_height * (float(width) / float(2.0 * height)) - 0.2
+    ax = plt.gca()
+    #fig.set_dpi(300)
     # print("Plot figure width: %.1f, height: %.1f" % (fig_width, fig_height))
+    fig_width = fig_height * (float(width) / float(height))
     fig.set_size_inches(fig_width, fig_height)
-    ax1, ax2 = fig.subplots(2, 1, sharex=True)
-    ax1.set_xlim(0, width)
-    ax1.set_ylim(0, height)
-    ax2.set_xlim(0, width)
-    ax2.set_ylim(0, height)
+    ax.set_xlim(0, width)
+    ax.set_ylim(0, height)
+    ax.axis("equal")
+
+    cmap = plt.get_cmap("gnuplot2")
+    norm = plt.Normalize(records[0].generation + 1, records[-1].generation + 1)
+
+    cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+                 ax=ax, fraction=0.02, pad=-0.00001)
+
+    cb.set_label(label="Generation", size=20, weight="bold")
+    cb.ax.tick_params(labelsize=15)
 
     # draw species
-    n_best_species = 0
-    for i, v in enumerate(best_sp_idx):
-        if v > 0:
-            n_best_species += 1
-            _draw_species_(records=records, sid=i, colors=colors, ax=ax1)
-        else:
-            _draw_species_(records=records, sid=i, colors=colors, ax=ax2)
-
-    ax1.set_title('fitness >= %.1f, species: %d' % (best_threshold, n_best_species))
-    ax2.set_title('fitness < %.1f' % best_threshold)
+    _draw_species_(records=records, ax=ax, cmap=cmap, norm=norm)
 
     # draw maze
-    _draw_maze_(maze_env, ax1)
-    _draw_maze_(maze_env, ax2)
+    _draw_maze_(maze_env, ax)
 
     # turn off axis rendering
     if not show_axes:
-        ax1.axis('off')
-        ax2.axis('off')
+        ax.axis('off')
     # Invert Y axis to have coordinates origin at the top left
-    ax1.invert_yaxis()
-    ax2.invert_yaxis()
+    ax.invert_yaxis()
 
     # Save figure to file
     if filename is not None:
-        plt.savefig(filename)
-
-    if view:
-        plt.show()
+        plt.savefig(filename + ".pdf", bbox_inches="tight")
 
     plt.close()
 
 
-def _draw_species_(records, sid, colors, ax):
+def _draw_species_(records, ax, cmap, norm):
     """
     The function to draw specific species from the records with
     particular color.
@@ -151,9 +126,8 @@ def _draw_species_(records, sid, colors, ax):
         ax:         The figure axis instance
     """
     for r in records:
-        if r.species_id == sid:
-            circle = plt.Circle((r.x, r.y), 2.0, facecolor=colors[r.species_id])
-            ax.add_patch(circle)
+        circle = plt.Circle((r.x, r.y), 0.5, facecolor=cmap(norm(r.generation + 1)))
+        ax.add_patch(circle)
 
 
 def _draw_maze_(maze_env, ax):
@@ -165,18 +139,21 @@ def _draw_maze_(maze_env, ax):
     """
     # draw maze walls
     for wall in maze_env.walls:
-        line = plt.Line2D((wall.a.x, wall.b.x), (wall.a.y, wall.b.y), lw=1.5)
+        line = plt.Line2D((wall.a.x, wall.b.x), (wall.a.y, wall.b.y), color="black", lw=1.5)
         ax.add_line(line)
 
     # draw start point
     start_circle = plt.Circle((maze_env.agent.location.x, maze_env.agent.location.y),
-                              radius=2.5, facecolor=(0.6, 1.0, 0.6), edgecolor='w')
+                              radius=2.5, facecolor="green", edgecolor='w')
     ax.add_patch(start_circle)
 
     # draw exit point
     exit_circle = plt.Circle((maze_env.exit_point.x, maze_env.exit_point.y),
                              radius=2.5, facecolor=(1.0, 0.2, 0.0), edgecolor='w')
+
     ax.add_patch(exit_circle)
+    #ax.scatter([maze_env.exit_point.x], [maze_env.exit_point.y], s=320, marker="*",
+    #           facecolor=(1.0, 0.2, 0.0), edgecolor='w', zorder=3)
 
 
 if __name__ == '__main__':
@@ -198,10 +175,10 @@ if __name__ == '__main__':
 
     # read maze environment
     maze_env_config = os.path.join(local_dir, '%s_maze.txt' % args.maze)
-    maze_env = maze.read_environment(maze_env_config)
+    maze_env = read_environment(maze_env_config)
 
     # read agents records
-    rs = agent.AgentRecordStore()
+    rs = AgentRecordStore()
     rs.load(args.records)
 
     # render visualization

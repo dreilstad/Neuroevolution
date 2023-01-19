@@ -44,11 +44,11 @@ class Novelty:
         pop_knn_neighbours = min(len(behavior_values), self.pop_knn_neighbours)
 
         # Obtain normalized data
-        normalized_behavior_values = self.normalize_data(behavior_values)
+        #normalized_behavior_values = self.normalize_data(behavior_values)
 
         # FIRST KNN MODEL: fit on the behavior values of current population
         knn_model = NearestNeighbors(n_neighbors=pop_knn_neighbours,
-                                     algorithm='ball_tree').fit(normalized_behavior_values)
+                                     algorithm='ball_tree').fit(behavior_values)
 
         if len(self.novel_members) < 1:
             models = [knn_model]
@@ -61,11 +61,11 @@ class Novelty:
             archive_knn_neighbours = min(len(novel_members_behaviors), self.archive_knn_neighbours)
 
             # Obtain normalized data
-            normalized_novel_members_behaviors = self.normalize_data(novel_members_behaviors)
+            #normalized_novel_members_behaviors = self.normalize_data(novel_members_behaviors)
 
             # SECOND KNN MODEL:: Build knn model for novel member archive
             novel_members_knn_model = NearestNeighbors(n_neighbors=archive_knn_neighbours, algorithm='ball_tree').fit(
-                normalized_novel_members_behaviors)
+                novel_members_behaviors)
 
             # Gather models
             models = [knn_model, novel_members_knn_model]
@@ -99,7 +99,7 @@ class Novelty:
             self.threshold = self.threshold * 1.05
 
         # using 1000 or 1250 evals based on "Novelty-based Multiobjectivization" paper as limit
-        if self.evaluations_since_last_added > 1500:
+        if self.evaluations_since_last_added >= 1000:
             self.threshold = self.threshold * 0.95
 
         # reset behaviors dict
@@ -107,7 +107,6 @@ class Novelty:
         #print(f"novel members size: {len(self.novel_members)}")
         #print(f"threshold: {self.threshold}")
         #print(f"evals since last added: {self.evaluations_since_last_added}")
-
 
     def calculate_population_distances(self, behaviors, genomes, knn_models):
         """
@@ -135,7 +134,6 @@ class Novelty:
 
             # Set genome novelty
             self.novelty_scores[genome_id] = fitness
-
 
     def KNN_distance(self, behavior, knn_model):
         """

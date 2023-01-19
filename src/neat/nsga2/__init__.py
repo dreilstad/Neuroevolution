@@ -25,9 +25,10 @@ class NSGA2Fitness:
         self.values = values
         self.rank = 0
         self.dist = 0.0
-        #self.score = 0.0
+
     def set(self, *values):
         self.values = values
+
     def add(self, *values):
         self.values = list(map(add, self.values, values))
 
@@ -42,13 +43,17 @@ class NSGA2Fitness:
     def __gt__(self, other):
         # comparison of fitnesses on tournament, use crowded-comparison operator
         # this is also used by max/min
-        if (isinstance(other,NSGA2Fitness)):
-            if (self.rank > other.rank): return True
-            elif (self.rank == other.rank and self.dist > other.dist): return True
+        if isinstance(other, NSGA2Fitness):
+            if self.rank > other.rank:
+                return True
+            elif self.rank == other.rank and self.dist > other.dist:
+                return True
+
             return False
         # stagnation.py initializes fitness as -sys.float_info.max
         # it's the only place where the next line should be called
         return self.rank > other
+
     # >=
     def __ge__(self, other):
         # population.run() compares fitness to the fitness threshold for termination
@@ -56,19 +61,19 @@ class NSGA2Fitness:
         # it's also the only place where score participates of evolution
         # besides that, score is a value for reporting the general evolution
         return self.values[0] >= other
+
     # -
     def __sub__(self, other):
         # used only by reporting->neat.math_util to calculate fitness (score) variance
-        #return self.score - other
         return self.values[0] - other
+
     # float()
     def __float__(self):
         # used only by reporting->neat.math_util to calculate mean fitness (score)
-        #return self.score
         return float(self.values[0])
+
     # str()
     def __str__(self):
-        #return "rank:{0},score:{1},values:{2}".format(self.rank, self.score, self.values)
         return "rank:{0},dist:{1},values:{2}".format(self.rank, self.dist, self.values)
 
 ##
@@ -81,16 +86,13 @@ class NSGA2Reproduction(DefaultClassConfig):
     def parse_config(cls, param_dict):
 
         return DefaultClassConfig(param_dict,
-                                  [ConfigParameter('elitism', int, 0),
-                                   ConfigParameter('survival_threshold', float, 0.2),
-                                   ConfigParameter('min_species_size', int, 2)])
+                                  [ConfigParameter("tournament", str, "random_selection")])
 
-    def __init__(self, config, reporters, stagnation):
+    def __init__(self, config, reporters):
         # pylint: disable=super-init-not-called
         self.reproduction_config = config
         self.reporters = reporters
         self.genome_indexer = count(1)
-        self.stagnation = stagnation
 
         # Parent population and species
         # This population is mixed with the evaluated population in order to achieve elitism
@@ -100,6 +102,10 @@ class NSGA2Reproduction(DefaultClassConfig):
         # Parento-fronts of genomes (including population and parent population)
         # These are created by the sort() method at the end of the fitness evaluation process
         self.fronts = []
+
+        # tournament dict
+        self.tournament_type = {"random_selection": self.random_selection,
+                                "tournament_selection": self.tournament_selection}
 
     # new population, called by the population constructor
     def create_new(self, genome_type, genome_config, num_genomes):
@@ -224,36 +230,11 @@ class NSGA2Reproduction(DefaultClassConfig):
         # Each species remains the same size (they grow and shrink based on pareto-fronts, on sort())
         # Only the <survival_threshold> best are used for mating
         # Mating can be sexual or asexual
-        """
 
-        new_population = {}
-        for _, sp in species.species.items():
-            # Sort species members by crowd distance
-            members = list(sp.members.values())
-            members.sort(key=lambda g: g.fitness, reverse=True)
-            # Survival threshold: how many members should be used as parents
-            repro_cutoff = int(math.ceil(self.reproduction_config.survival_threshold * len(members)))
-            # Use at least two parents no matter what the threshold fraction result is.
-            members = members[:max(repro_cutoff, 2)]
-            # spawn the number of members on the species
-            spawn = len(sp.members)
-            for i in range(spawn):
-                # pick two random parents
-                parent_a = random.choice(members)
-                parent_b = random.choice(members)
-                # sexual reproduction
-                # if a == b, it's asexual reproduction
-                gid = next(self.genome_indexer)
-                child = config.genome_type(gid)
-                child.configure_crossover(parent_a, parent_b, config.genome_config)
-                child.mutate(config.genome_config)
-                new_population[gid] = child
-        """
-
-
+        selection = self.tournament_type[self.reproduction_config.tournament]
         new_population = {}
         for i in range(len(population)):
-            parent = self.tournament_selection(list(population.items()))
+            parent = selection(list(population.items()))
 
             genome_id = next(self.genome_indexer)
             child = config.genome_type(genome_id)
@@ -263,6 +244,12 @@ class NSGA2Reproduction(DefaultClassConfig):
             new_population[genome_id] = child
 
         return new_population
+
+    @staticmethod
+    def random_selection(population):
+        selection_ind = np.random.choice(len(population))
+        selection = population[selection_ind]
+        return selection[1]
 
     @staticmethod
     def tournament_selection(population, fraction=0.2):

@@ -8,12 +8,13 @@ class BipedalWalkerSimulator(Simulator):
     def __init__(self, objectives):
         super().__init__(objectives)
         self.env = gym.make("BipedalWalker-v3")
-        self.env.reset()
         self.domain = "bipedal"
         # 24 input nodes
         # 4 output nodes
 
     def simulate(self, neural_network):
+
+        self.env.reset()
 
         all_activations = None
         if self.CKA is not None:

@@ -11,7 +11,6 @@ def main(domain, simulator, objectives, config_file, num_generations, show, para
 
     num_experiments = 20
     for _ in range(num_experiments):
-        print(type(simulator))
         ne = Neuroevolution(domain, simulator, objectives, config_file,
                             num_generations, show, evaluator=evaluator)
         winner = ne.run()
@@ -19,6 +18,7 @@ def main(domain, simulator, objectives, config_file, num_generations, show, para
         ne.save_stats()
 
 if __name__=="__main__":
+
 
     parser = argparse.ArgumentParser(description="Running Neuroevolution experiment",
                                      add_help=True)
@@ -61,7 +61,6 @@ if __name__=="__main__":
 
     main(args.domain, simulator, objectives, config, num_generations, args.show, args.parallel)
     """
-
     from simulation.environments.tartarus.tartarus_environment import TartarusEnvironment
     from simulation.environments.tartarus.minigrid.manual_control import ManualControl
     from simulation.environments.tartarus.tartarus_util import generate_configurations
@@ -84,4 +83,46 @@ if __name__=="__main__":
     print(f"performance score: {env.state_evaluation()}")
     print(env.encode_tartarus_state())
     print(env.encode_tartarus_state_with_walls())
+    
+
+    from simulation.environments.maze.agent import AgentRecordStore
+    from simulation.environments.maze.maze_environment import read_environment
+    from simulation.environments.maze.visualize import draw_maze_records
+    import random
+    import os
+
+
+    parser = argparse.ArgumentParser(description="The maze experiment visualizer.")
+    parser.add_argument('-m', '--maze', default='medium', help='The maze configuration to use.')
+    parser.add_argument('-r', '--records', help='The records file.')
+    parser.add_argument('-o', '--output', help='The file to store the plot.')
+    parser.add_argument('--width', type=int, default=300, help='The width of the subplot')
+    parser.add_argument('--height', type=int, default=140, help='The height of the subplot')
+    parser.add_argument('--fig_height', type=float, default=7, help='The height of the plot figure')
+    parser.add_argument('--show_axes', type=bool, default=False, help='The flag to indicate whether to show plot axes.')
+    args = parser.parse_args()
+
+    local_dir = os.path.dirname(__file__)
+    if not (args.maze == 'medium' or args.maze == 'hard'):
+        print('Unsupported maze configuration: %s' % args.maze)
+        exit(1)
+
+    # read maze environment
+    maze_env_config = os.path.join(local_dir, '%s_maze.txt' % args.maze)
+    import time
+
+    maze_env = read_environment("/Users/didrik/Documents/Master/Neuroevolution/src/simulation/environments/maze/medium_maze.txt")
+
+    # read agents records
+    rs = AgentRecordStore()
+    rs.load(args.records)
+
+    # render visualization
+    draw_maze_records(maze_env,
+                      rs.records,
+                      width=args.width,
+                      height=args.height,
+                      fig_height=args.fig_height,
+                      show_axes=args.show_axes,
+                      filename=args.output)
     """

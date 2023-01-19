@@ -6,18 +6,14 @@ from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
 
 class MazeSimulator(Simulator):
 
-    def __init__(self, objectives, maze_config="medium_maze.txt"):
+    def __init__(self, objectives):
         super().__init__(objectives)
-
-        local_dir = os.path.dirname(os.path.realpath(__file__))
-        maze_config_dir = os.path.join(local_dir, "environments/maze/")
-        self.env = read_environment(maze_config_dir + maze_config)
-
         self.history = AgentRecordStore()
-        self.domain = f"mazerobot-{maze_config.split('_')[0]}"
         self.MAX_TIME_STEPS = 400
 
     def simulate(self, neural_network):
+
+        self.env.reset()
 
         all_activations = None
         if self.CKA is not None:
@@ -73,3 +69,23 @@ class MazeSimulator(Simulator):
 
     def _get_novelty_characteristic(self, neural_network):
         return [self.env.agent.location.x, self.env.agent.location.y]
+
+
+class MediumMazeSimulator(MazeSimulator):
+
+    def __init__(self, objectives):
+        super().__init__(objectives)
+        local_dir = os.path.dirname(os.path.realpath(__file__))
+        maze_config_dir = os.path.join(local_dir, "environments/maze/medium_maze.txt")
+        self.env = read_environment(maze_config_dir)
+        self.domain = f"mazerobot-medium"
+
+
+class HardMazeSimulator(MazeSimulator):
+
+    def __init__(self, objectives):
+        super().__init__(objectives)
+        local_dir = os.path.dirname(os.path.realpath(__file__))
+        maze_config_dir = os.path.join(local_dir, "environments/maze/hard_maze.txt")
+        self.env = read_environment(maze_config_dir)
+        self.domain = f"mazerobot-hard"

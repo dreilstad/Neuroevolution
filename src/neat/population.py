@@ -22,10 +22,8 @@ class Population(object):
     def __init__(self, config, initial_state=None):
         self.reporters = ReporterSet()
         self.config = config
-        stagnation = config.stagnation_type(config.stagnation_config, self.reporters)
         self.reproduction = config.reproduction_type(config.reproduction_config,
-                                                     self.reporters,
-                                                     stagnation)
+                                                     self.reporters)
         if config.fitness_criterion == 'max':
             self.fitness_criterion = max
         elif config.fitness_criterion == 'min':
@@ -63,7 +61,7 @@ class Population(object):
             self.reporters.start_generation(self.generation)
 
             # Evaluate all genomes using the user-provided function.
-            fitness_function(list(self.population.items()), self.config)
+            fitness_function(list(self.population.items()), self.config, self.generation)
 
             # Call sorting method of NSGA2Reproduction
             # This is the only modification made to the main code, so the best

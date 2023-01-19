@@ -133,17 +133,13 @@ class Config(object):
                 ConfigParameter('reset_on_extinction', bool),
                 ConfigParameter('no_fitness_termination', bool, False)]
 
-    def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):
+    def __init__(self, genome_type, reproduction_type, filename):
         # Check that the provided types have the required methods.
         assert hasattr(genome_type, 'parse_config')
         assert hasattr(reproduction_type, 'parse_config')
-        assert hasattr(species_set_type, 'parse_config')
-        assert hasattr(stagnation_type, 'parse_config')
 
         self.genome_type = genome_type
         self.reproduction_type = reproduction_type
-        self.species_set_type = species_set_type
-        self.stagnation_type = stagnation_type
 
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
@@ -184,12 +180,6 @@ class Config(object):
         genome_dict = dict(parameters.items(genome_type.__name__))
         self.genome_config = genome_type.parse_config(genome_dict)
 
-        species_set_dict = dict(parameters.items(species_set_type.__name__))
-        self.species_set_config = species_set_type.parse_config(species_set_dict)
-
-        stagnation_dict = dict(parameters.items(stagnation_type.__name__))
-        self.stagnation_config = stagnation_type.parse_config(stagnation_dict)
-
         reproduction_dict = dict(parameters.items(reproduction_type.__name__))
         self.reproduction_config = reproduction_type.parse_config(reproduction_dict)
 
@@ -202,12 +192,6 @@ class Config(object):
 
             f.write('\n[{0}]\n'.format(self.genome_type.__name__))
             self.genome_type.write_config(f, self.genome_config)
-
-            f.write('\n[{0}]\n'.format(self.species_set_type.__name__))
-            self.species_set_type.write_config(f, self.species_set_config)
-
-            f.write('\n[{0}]\n'.format(self.stagnation_type.__name__))
-            self.stagnation_type.write_config(f, self.stagnation_config)
 
             f.write('\n[{0}]\n'.format(self.reproduction_type.__name__))
             self.reproduction_type.write_config(f, self.reproduction_config)

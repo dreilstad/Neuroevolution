@@ -2,7 +2,7 @@ import neat
 import numpy as np
 
 from objectives.hamming import Hamming
-from objectives.novelty_v2 import Novelty
+from objectives.novelty import Novelty
 from objectives.cka import CKA
 from objectives.modularity import Modularity, ModularDiversity
 
@@ -35,13 +35,13 @@ class Simulator:
         # initialized when simulating Mazerobot
         self.history = None
 
-    def evaluate_genomes(self, genomes, config):
+    def evaluate_genomes(self, genomes, config, generation):
         for genome_id, genome in genomes:
             neural_network = neat.nn.FeedForwardNetwork.create(genome, config)
             genome.fitness = neat.nsga2.NSGA2Fitness(*[0.0]*self.num_objectives)
 
             simulation_output = self.simulate(neural_network)
-            self.assign_output(genome_id, simulation_output)
+            self.assign_output(genome_id, simulation_output, generation)
 
         self.assign_fitness(genomes)
 
@@ -53,7 +53,7 @@ class Simulator:
         if self.hamming is not None:
             self.hamming.calculate_hamming_distances(genomes)
         if self.novelty is not None:
-            self.novelty.calculate_novelty(genomes)
+            self.novelty.calculate_novelty()
         if self.Q is not None:
             pass
         if self.CKA is not None:
@@ -76,7 +76,7 @@ class Simulator:
 
             genome.fitness.add(*fitnesses)
 
-    def assign_output(self, genome_id, simulation_output):
+    def assign_output(self, genome_id, simulation_output, generation):
         if self.performance is not None:
             self.performance[genome_id] = simulation_output["performance"]
 
@@ -84,7 +84,7 @@ class Simulator:
             self.hamming.sequences[genome_id] = simulation_output["hamming"]
 
         if self.novelty is not None:
-            self.novelty.behaviors[genome_id] = simulation_output["novelty"]
+            self.novelty.add(genome_id, simulation_output["novelty"])
 
         if self.CKA is not None:
             self.CKA.activations[genome_id] = np.array(simulation_output["CKA"])
@@ -95,6 +95,7 @@ class Simulator:
         if self.domain == "mazerobot-medium" or self.domain == "mazerobot-hard":
             record = simulation_output["agent_record"]
             record.agent_id = genome_id
+            record.generation = generation
             self.history.add_record(record)
 
     def _get_novelty_characteristic(self, neural_network):

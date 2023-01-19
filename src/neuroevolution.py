@@ -12,15 +12,13 @@ class Neuroevolution:
     def __init__(self, domain, simulator, objectives, config_file, num_generations, show, evaluator=None):
         self.domain = domain
         self.objectives = objectives
-        self.simulator = simulator
+        self.simulator = simulator(self.objectives)
         self.config_file = config_file
         self.num_generations = num_generations
         self.show = show
         self.evaluator = evaluator
 
-        self.neat_config = neat.Config(neat.DefaultGenome, NSGA2Reproduction,
-                                       neat.DefaultSpeciesSet, neat.NoStagnation,
-                                       self.config_file)
+        self.neat_config = neat.Config(neat.DefaultGenome, NSGA2Reproduction, self.config_file)
 
         self.pop = neat.Population(self.neat_config)
 
@@ -35,22 +33,23 @@ class Neuroevolution:
     def run(self):
         self.results_data_path, self.results_plot_path, self.checkpoint_path = make_new_run_folders(self.domain,
                                                                                                     self.objectives)
-        """
         self.init_reporters_and_checkpoints()
+        """
         g = self.pop.population[1]
+        net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
+        visualize.draw_net(net, f"init_net")
         for i in range(101):
             g.mutate(self.neat_config.genome_config)
             if i % 10 == 0:
                 net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
                 visualize.draw_net(net, f"{i}_net")
 
-
         exit(0)
         """
 
         if self.evaluator is not None:
             evaluator = self.evaluator(mp.cpu_count()//6, self.simulator)
-            best_genome = self.pop.run(evaluator.evaluate, n=self.num_generations)
+            best_genome = self.pop.run(evaluator.evaluate_genomes, n=self.num_generations)
         else:
             best_genome = self.pop.run(self.simulator.evaluate_genomes, n=self.num_generations)
 
@@ -62,6 +61,9 @@ class Neuroevolution:
         if self.domain == "mazerobot-medium" or self.domain == "mazerobot-hard":
             record_store_save_file = os.path.join(self.results_data_path, "agent_record_data.pickle")
             self.simulator.history.dump(record_store_save_file)
+            if "beh_div" in self.objectives:
+                archive_save_file = os.path.join(self.results_data_path, "archive_data.pickle")
+                self.simulator.novelty.write_archive_to_file(archive_save_file)
 
         # save fitness
         self.save_genome_fitness(self.results_data_path)
@@ -113,19 +115,14 @@ class Neuroevolution:
 
     def save_genome_fitness(self, save_path):
         run_number = os.path.basename(os.path.normpath(save_path))
-        generation = range(len(self.stats.most_fit_genomes))
 
+        generation = range(self.num_generations)
         best_fitness = [c.fitness.values[0] for c in self.stats.most_fit_genomes]
+
+        # check if run terminated early, fill in last fitness value to match num_generations
+        if len(best_fitness) < self.num_generations:
+            best_fitness = best_fitness + [best_fitness[-1]] * (self.num_generations - len(best_fitness))
+
         with open(os.path.join(self.results_data_path, f"best_fitness_{run_number}.dat"), "w") as f:
             for gen, fitness in zip(generation, best_fitness):
-                f.write(f"{gen} {fitness}\n")
-
-        avg_fitness = np.array(self.stats.get_fitness_mean())
-        with open(os.path.join(self.results_data_path, f"mean_fitness_{run_number}.dat"), "w") as f:
-            for gen, fitness in zip(generation, avg_fitness):
-                f.write(f"{gen} {fitness}\n")
-
-        stdev_fitness = np.array(self.stats.get_fitness_stdev())
-        with open(os.path.join(self.results_data_path, f"stdev_fitness_{run_number}.dat"), "w") as f:
-            for gen, fitness in zip(generation, stdev_fitness):
                 f.write(f"{gen} {fitness}\n")

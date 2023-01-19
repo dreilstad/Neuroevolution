@@ -7,63 +7,12 @@
 
 import math
 
-from .agent import Agent
-from .geometry import Point, Line, deg_to_rad, read_line, read_point
+from simulation.environments.maze.agent import Agent
+from simulation.environments.maze.geometry import Point, Line, deg_to_rad, read_line, read_point
 
 # The maximal allowed speed for the maze solver agent
 MAX_AGENT_SPEED = 3.0
 
-def maze_novelty_metric(first_item, second_item):
-    """
-    The function to calculate the novelty metric score as a distance between two
-    data vectors in provided NoveltyItems
-    Arguments:
-        first_item:     The first NoveltyItem
-        second_item:    The second NoveltyItem
-    Returns:
-        The novelty metric as a distance between two
-        data vectors in provided NoveltyItems
-    """
-    if not (hasattr(first_item, "data") or hasattr(second_item, "data")):
-        return NotImplemented
-
-    if len(first_item.data) != len(second_item.data):
-        # can not be compared
-        return 0.0
-
-    diff_accum = 0.0
-    size = len(first_item.data)
-    for i in range(size):
-        diff = abs(first_item.data[i] - second_item.data[i])
-        diff_accum += diff
-    
-    return diff_accum / float(size)
-
-def maze_novelty_metric_euclidean(first_item, second_item):
-    """
-    The function to calculate the novelty metric score as a distance between two
-    data vectors in provided NoveltyItems
-    Arguments:
-        first_item:     The first NoveltyItem
-        second_item:    The second NoveltyItem
-    Returns:
-        The novelty metric as a distance between two
-        data vectors in provided NoveltyItems
-    """
-    if not (hasattr(first_item, "data") or hasattr(second_item, "data")):
-        return NotImplemented
-
-    if len(first_item.data) != len(second_item.data):
-        # can not be compared
-        return 0.0
-
-    diff_accum = 0.0
-    size = len(first_item.data)
-    for i in range(size):
-        diff = (first_item.data[i] - second_item.data[i])
-        diff_accum += (diff * diff)
-    
-    return math.sqrt(diff_accum)
 
 class MazeEnvironment:
     """
@@ -87,11 +36,18 @@ class MazeEnvironment:
         self.exit_found = False
         # The initial distance of agent from exit
         self.initial_distance = self.agent_distance_to_exit()
+        self.initial_agent_location = self.agent.location
 
         # The sample rate of agent position points saving during simulation steps.
         self.location_sample_rate = -1
 
         # Update sensors
+        self.update_rangefinder_sensors()
+        self.update_radars()
+
+    def reset(self):
+        self.agent = Agent(self.initial_agent_location)
+        self.exit_found = False
         self.update_rangefinder_sensors()
         self.update_radars()
 

@@ -24,7 +24,7 @@ class ParallelEvaluator(object):
         self.pool.close() # should this be terminate?
         self.pool.join()
 
-    def evaluate(self, genomes, config):
+    def evaluate_genomes(self, genomes, config, generation):
         jobs = []
         for ignored_genome_id, genome in genomes:
             jobs.append(self.pool.apply_async(self.eval_function, (genome, config)))
@@ -40,7 +40,7 @@ class MultiObjectiveParallelEvaluator(ParallelEvaluator):
         super(MultiObjectiveParallelEvaluator, self).__init__(num_workers, simulator.simulate, timeout)
         self.simulator = simulator
 
-    def evaluate(self, genomes, config):
+    def evaluate_genomes(self, genomes, config, generation):
         jobs = []
         for genome_id, genome in genomes:
             neural_network = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -49,6 +49,6 @@ class MultiObjectiveParallelEvaluator(ParallelEvaluator):
 
         for job, (genome_id, genome) in zip(jobs, genomes):
             simulation_output = job.get(timeout=self.timeout)
-            self.simulator.assign_output(genome_id, simulation_output)
+            self.simulator.assign_output(genome_id, simulation_output, generation)
 
         self.simulator.assign_fitness(genomes)

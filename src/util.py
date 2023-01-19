@@ -2,11 +2,9 @@ import os
 import glob
 import argparse
 import neat
-import numpy as np
 
-from simulation.xor_simulation import XORSimulator
 from simulation.retina_simulation import RetinaSimulator
-from simulation.maze_simulation import MazeSimulator
+from simulation.maze_simulation import MediumMazeSimulator, HardMazeSimulator
 from simulation.bipedal_walker_simulation import BipedalWalkerSimulator
 from simulation.tartarus_simulation import TartarusSimulator
 
@@ -14,7 +12,7 @@ from simulation.tartarus_simulation import TartarusSimulator
 def validate_input(args):
     config = validate_config_file(args.config_file)
     objectives = validate_objectives(args.objectives)
-    domain = validate_domain(args.domain, objectives)
+    domain = validate_domain(args.domain)
 
     return domain, config, objectives, args.num_generations
 
@@ -28,24 +26,17 @@ def validate_config_file(filename):
     return config_path
 
 
-def validate_domain(domain, objectives):
+def validate_domain(domain):
+    simulators = {"retina": RetinaSimulator,
+                  "bipedal": BipedalWalkerSimulator,
+                  "mazerobot-medium": MediumMazeSimulator,
+                  "mazerobot-hard": HardMazeSimulator,
+                  "tartarus": TartarusSimulator}
 
-    if domain == "xor":
-        simulator = XORSimulator(objectives)
-    elif domain == "retina":
-        simulator = RetinaSimulator(objectives)
-    elif domain == "bipedal":
-        simulator = BipedalWalkerSimulator(objectives)
-    elif domain == "mazerobot-medium":
-        simulator = MazeSimulator(objectives, maze_config="medium_maze.txt")
-    elif domain == "mazerobot-hard":
-        simulator = MazeSimulator(objectives, maze_config="hard_maze.txt")
-    elif domain == "tartarus":
-        simulator = TartarusSimulator(objectives)
-    else:
+    if domain not in simulators:
         raise RuntimeError("Domain is no valid")
 
-    return simulator
+    return simulators[domain]
 
 
 def validate_objectives(objectives):

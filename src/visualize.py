@@ -1,11 +1,16 @@
 import warnings
 import graphviz
+import random
+import argparse
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-#import networkx as nx
-#from networkx.drawing.nx_agraph import graphviz_layout
-import neat
-from neat.nsga2 import NSGA2Reproduction
+
+from simulation.environments.maze.agent import AgentRecordStore
+from simulation.environments.maze.maze_environment import read_environment
+
+
 def plot_stats(statistics, filename, ylog=False, show=False):
     """ Plots the population's average and best fitness. """
     if plt is None:
@@ -16,7 +21,6 @@ def plot_stats(statistics, filename, ylog=False, show=False):
     best_fitness = [c.fitness for c in statistics.most_fit_genomes]
     avg_fitness = np.array(statistics.get_fitness_mean())
     stdev_fitness = np.array(statistics.get_fitness_stdev())
-
 
     plt.plot(generation, avg_fitness, 'b-', label="average")
     # plt.plot(generation, avg_fitness - stdev_fitness, 'g-.', label="-1 sd")
@@ -153,11 +157,6 @@ def draw_net(net, filename, node_names={}, node_colors={}):
         next_layer = []
         i += 1
 
-    print(filename)
-    for i, layer in enumerate(hidden_layers):
-        print(f"layer {i}: {layer}")
-    print()
-
     for layer in hidden_layers:
         with dot.subgraph() as s:
             s.attr(rank="same")
@@ -195,46 +194,140 @@ def draw_net(net, filename, node_names={}, node_colors={}):
     dot.render(filename)
     return dot
 
-if __name__=="__main__":
-    from util import load_checkpoints
-    check = load_checkpoints("/Users/didrik/Documents/Master/Neuroevolution/src/checkpoints/retina/performance-hamming/000")
-    #save_file = "/Users/didrik/Documents/Master/Neuroevolution/src/results/plots/retina/performance-hamming/050/pareto_front_test.png"
-    #plot_pareto_2d(check, save_file, "Retina",
-    #                         "Task Performance", "Hamming Distance",
-    #                         500.0, 10000.0)
-    config_file = "/Users/didrik/Documents/Master/Neuroevolution/src/config/retina_config_multiobj.ini"
-    i = 0
-    #for c in check[-1]:
-    for genome_id, genome in check[-1].population.items():
-        if genome.fitness.rank == 0:
-            network = neat.nn.FeedForwardNetwork.create(genome, neat.Config(neat.DefaultGenome, NSGA2Reproduction,
-                                                                            neat.DefaultSpeciesSet, neat.NoStagnation,
-                                                                            config_file))
-            draw_net(network, f"{i}_network")
-            """
-            G = toNetworkxGraph(network)
 
-            color_map = []
-            for node in G:
-                if node in network.input_nodes:
-                    color_map.append("#FFB000")
-                elif node in network.output_nodes:
-                    color_map.append("#DC267F")
-                else:
-                    color_map.append("#648FFF")
+def draw_maze_records(maze_env, records, filename=None,
+                      width=140, height=300, fig_height=7):
+    """
+    The function to draw maze with recorded agents positions.
+    Arguments:
+        maze_env:       The maze environment configuration.
+        records:        The records of solver agents collected during NEAT execution.
+        best_threshold: The minimal fitness of maze solving agent's species to be included into the best ones.
+        filename:       The name of file to store plot.
+        view:           The flag to indicate whether to view plot.
+        width:          The width of drawing in pixels
+        height:         The height of drawing in pixels
+        fig_height:      The plot figure height in inches
+    """
 
-            pos = graphviz_layout(G, prog="dot")
+    # initialize plotting
+    fig = plt.figure()
+    ax = plt.gca()
 
-            nx.draw(G, node_color=color_map, node_size=500, with_labels=True, pos=pos, font_weight="bold")
-            color_labels = {"Input nodes":"#FFB000", "Hidden nodes":"#648FFF", "Output nodes":"#DC267F"}
-            for name, color in color_labels.items():
-                plt.scatter([], [], c=color, label=name)
+    fig_width = fig_height * (float(width) / float(height))
+    fig.set_size_inches(fig_width, fig_height)
 
-            plt.legend()
-            plt.savefig(f"{i}_network.png")
-            plt.close()
-            """
+    ax.set_xlim(0, width)
+    ax.set_ylim(0, height)
+    ax.axis("equal")
 
-            i += 1
+    if records is not None:
 
-    print(i)
+        cmap = plt.get_cmap("gnuplot2")
+        norm = plt.Normalize(records[0].generation + 1, records[-1].generation + 1)
+
+        cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+                     ax=ax, fraction=0.02, pad=-0.00001)
+
+        cb.set_label(label="Generation", size=20, weight="bold")
+        cb.ax.tick_params(labelsize=15)
+
+        # draw species
+        _draw_species_(records=records, ax=ax, cmap=cmap, norm=norm)
+
+    # draw maze
+    _draw_maze_(maze_env, ax)
+
+    # turn off axis rendering
+    ax.axis('off')
+
+    # Invert Y axis to have coordinates origin at the top left
+    ax.invert_yaxis()
+
+    # Save figure to file
+    if filename is not None:
+        plt.savefig(filename + ".pdf", bbox_inches="tight")
+
+    plt.close()
+
+
+def _draw_species_(records, ax, cmap, norm):
+    """
+    The function to draw specific species from the records with
+    particular color.
+    Arguments:
+        records:    The records of solver agents collected during NEAT execution.
+        sid:        The species ID
+        colors:     The colors table by species ID
+        ax:         The figure axis instance
+    """
+    for r in records:
+        circle = plt.Circle((r.x, r.y), 0.5, facecolor=cmap(norm(r.generation + 1)))
+        ax.add_patch(circle)
+
+
+def _draw_maze_(maze_env, ax):
+    """
+    The function to draw maze environment
+    Arguments:
+        maze_env:   The maze environment configuration.
+        ax:         The figure axis instance
+    """
+    # draw maze walls
+    for wall in maze_env.walls:
+        line = plt.Line2D((wall.a.x, wall.b.x), (wall.a.y, wall.b.y), color="black", lw=1.5)
+        ax.add_line(line)
+
+    # draw start point
+    start_circle = plt.Circle((maze_env.agent.location.x, maze_env.agent.location.y),
+                              radius=2.5, facecolor="green", edgecolor='w')
+    ax.add_patch(start_circle)
+
+    # draw exit point
+    exit_circle = plt.Circle((maze_env.exit_point.x, maze_env.exit_point.y),
+                             radius=2.5, facecolor=(1.0, 0.2, 0.0), edgecolor='w')
+
+    ax.add_patch(exit_circle)
+    #ax.scatter([maze_env.exit_point.x], [maze_env.exit_point.y], s=320, marker="*",
+    #           facecolor=(1.0, 0.2, 0.0), edgecolor='w', zorder=3)
+
+
+if __name__ == "__main__":
+
+    # read command line parameters
+    parser = argparse.ArgumentParser(description="The maze experiment visualizer.")
+    parser.add_argument('-m', '--maze', choices=["medium", "hard"], help='The maze configuration to use.')
+    parser.add_argument('-r', '--records', required=False, default=None, help='The records file.')
+    parser.add_argument('-o', '--output', required=False, default="output", help='The file to store the plot.')
+    parser.add_argument('-e', '--empty', action="store_true", help='The file to store the plot.')
+
+    args = parser.parse_args()
+    print(args.maze)
+    print(args.records)
+    print(args.output)
+    print(args.empty)
+
+    # read maze environment
+    maze_config = f"/Users/didrik/Documents/Master/Neuroevolution/src/simulation/environments/maze/{args.maze}_maze.txt"
+    maze_env = read_environment(maze_config)
+
+    plot_params = {"medium": {"width": 300, "height": 140, "fig_height": 7},
+                   "hard": {"width": 205, "height": 205, "fig_height": 7}}
+    params = plot_params[args.maze]
+
+    # read agents records
+    records = None
+    if not args.empty:
+        if args.records is not None:
+            print("hi")
+            rs = AgentRecordStore()
+            rs.load(args.records)
+            records = rs.records
+
+    # render visualization
+    draw_maze_records(maze_env,
+                      records,
+                      width=params["width"],
+                      height=params["height"],
+                      fig_height=params["fig_height"],
+                      filename=args.output)
