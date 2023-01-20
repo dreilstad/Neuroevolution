@@ -9,7 +9,7 @@ def main(domain, simulator, objectives, config_file, num_generations, show, para
     if parallel:
         evaluator = neat.MultiObjectiveParallelEvaluator
 
-    num_experiments = 20
+    num_experiments = 10
     for _ in range(num_experiments):
         ne = Neuroevolution(domain, simulator, objectives, config_file,
                             num_generations, show, evaluator=evaluator)
@@ -18,6 +18,9 @@ def main(domain, simulator, objectives, config_file, num_generations, show, para
         ne.save_stats()
 
 if __name__=="__main__":
+
+    # TODO: ved kjøring på ml nodes, bruk:
+    #       module load PyTorch-bundle/1.10.0-MKL-bundle-pre-optimised
 
 
     parser = argparse.ArgumentParser(description="Running Neuroevolution experiment",
