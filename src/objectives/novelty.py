@@ -33,7 +33,6 @@ class Novelty:
 
             # sort list of distances to get the k nearest neighbors
             nearest_neighbors = sorted(distances)[:self.k]
-            print(nearest_neighbors)
 
             # calculate novelty and assign score
             novelty = np.mean(nearest_neighbors)
