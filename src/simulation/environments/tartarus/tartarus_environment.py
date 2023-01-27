@@ -12,8 +12,10 @@ class TartarusEnvironment(MiniGridEnv):
     Tartarus environment
     """
 
-    def __init__(self, configuration, N=6, K=6, moves=80):
+    def __init__(self, configuration, N=6, K=6, moves=80, fixed_agent_pos=None, fixed_agent_dir=None):
         self.configuration = configuration
+        self.fixed_agent_pos = fixed_agent_pos
+        self.fixed_agent_dir = fixed_agent_dir
         self.N = N
         self.K = K
         super().__init__(
@@ -24,12 +26,6 @@ class TartarusEnvironment(MiniGridEnv):
             max_steps=moves,
             render_mode="rgb_array"
         )
-
-        # C1 = (N^2 - K) / (N-2)^2 ???
-        self.C1 = 1.8
-
-        # C2 = N^2 / K
-        self.C2 = (self.N - 2)**2 / self.K
 
     def to_str(self):
         AGENT_DIR_TO_STR = {0: ">", 1: "V", 2: "<", 3: "^"}
@@ -61,16 +57,26 @@ class TartarusEnvironment(MiniGridEnv):
 
         print("Finished placing boxes")
 
-        # get random position of agent in environment
-        indices = np.arange(1, self.N-1)
-        possible_positions = [(x, y) for x in indices for y in indices if (x, y) not in boxes]
-        agent_pos = choice(possible_positions)
+        # if not using fixed agent, use random position and direction
+        if self.fixed_agent_pos is None:
+            # get random position of agent in environment
+            indices = np.arange(1, self.N-1)
+            possible_positions = [(x, y) for x in indices for y in indices if (x, y) not in boxes]
+            agent_pos = choice(possible_positions)
 
-        # place agent with random position with random direction
-        self.place_agent(
-            top=(agent_pos[1] + 1, agent_pos[0] + 1),
-            size=(1, 1)
-        )
+            # place agent with random position with random direction
+            self.place_agent(
+                top=(agent_pos[1] + 1, agent_pos[0] + 1),
+                size=(1, 1)
+            )
+        else:
+            self.place_agent(
+                top=(self.fixed_agent_pos[1] + 1, self.fixed_agent_pos[0] + 1),
+                size=(1, 1),
+                rand_dir=False
+            )
+            self.agent_dir = self.fixed_agent_dir
+
         print("Finished placing agent")
 
         return
@@ -180,3 +186,51 @@ class TartarusEnvironment(MiniGridEnv):
                     tartarus_state[j][i] = -1
 
         return tartarus_state
+
+
+class DeceptiveTartarusEnvironment(TartarusEnvironment):
+
+    def __init__(self, configuration, N=6, K=6, moves=80, fixed_agent_pos=None, fixed_agent_dir=None):
+        super().__init__(
+            configuration=configuration,
+            N=N,
+            K=K,
+            moves=moves,
+            fixed_agent_pos=fixed_agent_pos,
+            fixed_agent_dir=fixed_agent_dir
+        )
+
+    def state_evaluation(self):
+        """
+        Compute state evaluation
+        """
+        performance_score = 0.0
+
+        # check corners
+        corners = [(1,1), (1,self.N), (self.N, 1), (self.N, self.N)]
+        for corner in corners:
+            cell = self.grid.get(*corner)
+            if cell is not None and cell.type == "box":
+                performance_score += 2.0
+
+        # check top and bottom borders
+        for j in range(2, self.N):
+            top_cell = self.grid.get(1, j)
+            bottom_cell = self.grid.get(self.N, j)
+
+            if top_cell is not None and top_cell.type == "box":
+                performance_score -= 1.0
+            if bottom_cell is not None and bottom_cell.type == "box":
+                performance_score -= 1.0
+
+        # check left and right borders
+        for i in range(2, self.N):
+            left_cell = self.grid.get(i, 1)
+            right_cell = self.grid.get(i, self.N)
+
+            if left_cell is not None and left_cell.type == "box":
+                performance_score -= 1.0
+            if right_cell is not None and right_cell.type == "box":
+                performance_score -= 1.0
+
+        return performance_score

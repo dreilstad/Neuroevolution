@@ -4,26 +4,27 @@ import numpy as np
 from objectives.hamming import Hamming
 from objectives.novelty import Novelty
 from objectives.cka import CKA
-from objectives.modularity import Modularity, ModularDiversity
+from objectives.modularity import Modularity, ModularityDiversity
 
 
 class Simulator:
 
-    def __init__(self, objectives):
+    def __init__(self, objectives, domain):
         self.objectives = objectives
         self.num_objectives = len(self.objectives)
-        self.domain = ""
+        self.domain = domain
+        self.use_input_nodes_in_mod_div = True
 
         # performance objective
         self.performance = {} if "performance" in self.objectives else None
 
         # structural diversity objective
-        self.Q = Modularity() if "modularity" in self.objectives else None
-        self.ModDiv = ModularDiversity() if "mod_div" in self.objectives else None
+        self.Q = {} if "modularity" in self.objectives else None
+        self.mod_div = ModularityDiversity() if "mod_div" in self.objectives else None
 
         # behavioral diversity objective
         self.hamming = Hamming() if "hamming" in self.objectives else None
-        self.novelty = Novelty() if "beh_div" in self.objectives else None
+        self.novelty = Novelty(self.domain) if "beh_div" in self.objectives else None
 
         # representational diversity objective
         self.CKA = None
@@ -36,11 +37,19 @@ class Simulator:
         self.history = None
 
     def evaluate_genomes(self, genomes, config, generation):
+
+        nodes_of_interest = config.genome_config.input_keys
+        if not self.use_input_nodes_in_mod_div:
+            nodes_of_interest = config.genome_config.output_keys
+
         for genome_id, genome in genomes:
             neural_network = neat.nn.FeedForwardNetwork.create(genome, config)
             genome.fitness = neat.nsga2.NSGA2Fitness(*[0.0]*self.num_objectives)
 
             simulation_output = self.simulate(neural_network)
+            simulation_output["nodes"] = config.genome_config.input_keys + list(genome.nodes)
+            simulation_output["edges"] = list(genome.connections)
+            simulation_output["nodes_of_interest"] = nodes_of_interest
             self.assign_output(genome_id, simulation_output, generation)
 
         self.assign_fitness(genomes)
@@ -54,8 +63,8 @@ class Simulator:
             self.hamming.calculate_hamming_distances(genomes)
         if self.novelty is not None:
             self.novelty.calculate_novelty()
-        if self.Q is not None:
-            pass
+        if self.mod_div is not None:
+            self.mod_div.calculate_modular_diversity(genomes)
         if self.CKA is not None:
             self.CKA.calculate_CKA_similarities_parallel(genomes)
 
@@ -69,12 +78,16 @@ class Simulator:
                     fitnesses[i] = self.hamming[genome_id]
                 elif objective == "beh_div":
                     fitnesses[i] = self.novelty[genome_id]
-                elif objective == "Q":
+                elif objective == "modularity":
                     fitnesses[i] = self.Q[genome_id]
+                elif objective == "mod_div":
+                    fitnesses[i] = self.mod_div[genome_id]
                 elif objective == "linear_cka" or objective == "rbf_cka":
                     fitnesses[i] = 1.0 / self.CKA[genome_id]
 
             genome.fitness.add(*fitnesses)
+
+        self.Q = {}
 
     def assign_output(self, genome_id, simulation_output, generation):
         if self.performance is not None:
@@ -90,7 +103,12 @@ class Simulator:
             self.CKA.activations[genome_id] = np.array(simulation_output["CKA"])
 
         if self.Q is not None:
-            pass
+            self.Q[genome_id] = Modularity.calculate_modularity(simulation_output["nodes"],
+                                                                simulation_output["edges"])
+
+        if self.mod_div is not None:
+            self.mod_div.add(genome_id, simulation_output["nodes"], simulation_output["edges"],
+                             simulation_output["nodes_of_interest"])
 
         if self.domain == "mazerobot-medium" or self.domain == "mazerobot-hard":
             record = simulation_output["agent_record"]

@@ -3,9 +3,7 @@ Runs evaluation functions in parallel subprocesses
 in order to evaluate multiple genomes at once.
 """
 import neat
-import numpy as np
 from multiprocessing import Pool
-from simulation.environments.maze.agent import AgentRecord
 
 
 class ParallelEvaluator(object):
@@ -41,6 +39,11 @@ class MultiObjectiveParallelEvaluator(ParallelEvaluator):
         self.simulator = simulator
 
     def evaluate_genomes(self, genomes, config, generation):
+
+        nodes_of_interest = config.genome_config.input_keys
+        if not self.simulator.use_input_nodes_in_mod_div:
+            nodes_of_interest = config.genome_config.output_keys
+
         jobs = []
         for genome_id, genome in genomes:
             neural_network = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -49,6 +52,9 @@ class MultiObjectiveParallelEvaluator(ParallelEvaluator):
 
         for job, (genome_id, genome) in zip(jobs, genomes):
             simulation_output = job.get(timeout=self.timeout)
+            simulation_output["nodes"] = config.genome_config.input_keys + list(genome.nodes)
+            simulation_output["edges"] = list(genome.connections)
+            simulation_output["nodes_of_interest"] = nodes_of_interest
             self.simulator.assign_output(genome_id, simulation_output, generation)
 
         self.simulator.assign_fitness(genomes)

@@ -6,10 +6,11 @@ from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
 
 class MazeSimulator(Simulator):
 
-    def __init__(self, objectives):
-        super().__init__(objectives)
+    def __init__(self, objectives, domain):
+        super().__init__(objectives, domain)
         self.history = AgentRecordStore()
         self.MAX_TIME_STEPS = 400
+        self.use_input_nodes_in_mod_div = True
 
     def simulate(self, neural_network):
 
@@ -73,19 +74,17 @@ class MazeSimulator(Simulator):
 
 class MediumMazeSimulator(MazeSimulator):
 
-    def __init__(self, objectives):
-        super().__init__(objectives)
+    def __init__(self, objectives, domain):
+        super().__init__(objectives, domain)
         local_dir = os.path.dirname(os.path.realpath(__file__))
         maze_config_dir = os.path.join(local_dir, "environments/maze/medium_maze.txt")
         self.env = read_environment(maze_config_dir)
-        self.domain = f"mazerobot-medium"
 
 
 class HardMazeSimulator(MazeSimulator):
 
-    def __init__(self, objectives):
-        super().__init__(objectives)
+    def __init__(self, objectives, domain):
+        super().__init__(objectives, domain)
         local_dir = os.path.dirname(os.path.realpath(__file__))
         maze_config_dir = os.path.join(local_dir, "environments/maze/hard_maze.txt")
         self.env = read_environment(maze_config_dir)
-        self.domain = f"mazerobot-hard"

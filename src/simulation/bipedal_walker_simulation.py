@@ -5,10 +5,10 @@ from simulation.simulator import Simulator
 
 class BipedalWalkerSimulator(Simulator):
 
-    def __init__(self, objectives):
-        super().__init__(objectives)
+    def __init__(self, objectives, domain):
+        super().__init__(objectives, domain)
         self.env = gym.make("BipedalWalker-v3")
-        self.domain = "bipedal"
+        self.use_input_nodes_in_mod_div = True
         # 24 input nodes
         # 4 output nodes
 
@@ -56,5 +56,16 @@ class BipedalWalkerSimulator(Simulator):
                 "CKA": all_activations}
 
     def _get_novelty_characteristic(self, neural_network):
-        # TODO: change novelty to use output from fixed input
-        return [*self.env.hull.position]
+
+        # behavior vector
+        behavior = []
+
+        # for each input node, we set input to 1 and 0 for the rest and record the network output
+        state = [0.0] * len(neural_network.input_nodes)
+        for i in range(len(state)):
+            state[i] = 1.0
+            network_output, _ = neural_network.activate(state)
+            behavior.extend(network_output)
+            state[i] = 0.0
+
+        return behavior

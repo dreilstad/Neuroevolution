@@ -1,14 +1,13 @@
-import numpy as np
 from simulation.simulator import Simulator
 from simulation.environments.retina.retina_environment import RetinaEnvironment, Side, VisualObject
 
 
 class RetinaSimulator(Simulator):
 
-    def __init__(self, objectives):
-        super().__init__(objectives)
+    def __init__(self, objectives, domain):
+        super().__init__(objectives, domain)
         self.env = RetinaEnvironment()
-        self.domain = "retina"
+        self.use_input_nodes_in_mod_div = True
 
     def simulate(self, neural_network):
 
@@ -79,30 +78,22 @@ class RetinaSimulator(Simulator):
 
     def _get_novelty_characteristic(self, neural_network):
 
-        # first test patterns
-        test_object_left = VisualObject("o o\no o", side=Side.LEFT)
-        test_object_right = VisualObject(". .\n. .", side=Side.RIGHT)
+        # behavior vector
+        behavior = []
 
-        test_input = test_object_left.get_data() + test_object_right.get_data()
-        test_input.append(0.5)
+        # test patterns to feed through the network to get behavior
+        test_patterns = [(VisualObject("o .\n. o", side=Side.LEFT), VisualObject(". o\no .", side=Side.RIGHT)),
+                         (VisualObject(". o\no .", side=Side.LEFT), VisualObject("o .\n. o", side=Side.RIGHT)),
+                         (VisualObject("o o\no o", side=Side.LEFT), VisualObject(". .\n. .", side=Side.RIGHT)),
+                         (VisualObject(". .\n. .", side=Side.LEFT), VisualObject("o o\no o", side=Side.RIGHT))]
 
-        network_output, activations = neural_network.activate(test_input)
-        return network_output
+        # iterate test patterns
+        for test_pattern_left, test_pattern_right in test_patterns:
 
-    @staticmethod
-    def novelty_metric(first_item, second_item):
-        if not (hasattr(first_item, "data") or hasattr(second_item, "data")):
-            return NotImplemented
+            test_input = test_pattern_left.get_data() + test_pattern_right.get_data()
+            test_input.append(0.5)
 
-        if len(first_item.data) != len(second_item.data):
-            # can not be compared
-            return 0.0
+            network_output, _ = neural_network.activate(test_input)
+            behavior.extend(network_output)
 
-        diff_accum = 0.0
-        size = len(first_item.data)
-        for i in range(size):
-            diff = abs(first_item.data[i] - second_item.data[i])
-            diff_accum += diff
-
-        return diff_accum / float(size)
-
+        return behavior

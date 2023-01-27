@@ -45,7 +45,7 @@ def plot_stats(statistics, filename, ylog=False, show=False):
 def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, invert=True, show=False):
     fitnesses = [[f.fitness for _, f in c.population.items()] for c in checkpoints]
 
-    fig, ax = plt.subplots(figsize = (10,5))
+    fig, ax = plt.subplots(figsize=(10, 5))
     ax.set_title(domain + " - Solution Space")
 
     if invert:
@@ -195,7 +195,7 @@ def draw_net(net, filename, node_names={}, node_colors={}):
     return dot
 
 
-def draw_maze_records(maze_env, records, filename=None,
+def draw_maze_records(maze_env, records, filename=None, archive=False,
                       width=140, height=300, fig_height=7):
     """
     The function to draw maze with recorded agents positions.
@@ -226,14 +226,15 @@ def draw_maze_records(maze_env, records, filename=None,
         cmap = plt.get_cmap("gnuplot2")
         norm = plt.Normalize(records[0].generation + 1, records[-1].generation + 1)
 
-        cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap),
-                     ax=ax, fraction=0.02, pad=-0.00001)
+        if not archive:
+            cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+                              ax=ax, fraction=0.02, pad=-0.00001)
 
-        cb.set_label(label="Generation", size=20, weight="bold")
-        cb.ax.tick_params(labelsize=15)
+            cb.set_label(label="Generation", size=20, weight="bold")
+            cb.ax.tick_params(labelsize=15)
 
         # draw species
-        _draw_species_(records=records, ax=ax, cmap=cmap, norm=norm)
+        _draw_species_(records=records, ax=ax, cmap=cmap, norm=norm, archive=archive)
 
     # draw maze
     _draw_maze_(maze_env, ax)
@@ -251,7 +252,7 @@ def draw_maze_records(maze_env, records, filename=None,
     plt.close()
 
 
-def _draw_species_(records, ax, cmap, norm):
+def _draw_species_(records, ax, cmap, norm, archive):
     """
     The function to draw specific species from the records with
     particular color.
@@ -262,7 +263,10 @@ def _draw_species_(records, ax, cmap, norm):
         ax:         The figure axis instance
     """
     for r in records:
-        circle = plt.Circle((r.x, r.y), 0.5, facecolor=cmap(norm(r.generation + 1)))
+        if archive:
+            circle = plt.Circle((r.x, r.y), 0.5, facecolor="royalblue")
+        else:
+            circle = plt.Circle((r.x, r.y), 0.5, facecolor=cmap(norm(r.generation + 1)))
         ax.add_patch(circle)
 
 
@@ -299,7 +303,8 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--maze', choices=["medium", "hard"], help='The maze configuration to use.')
     parser.add_argument('-r', '--records', required=False, default=None, help='The records file.')
     parser.add_argument('-o', '--output', required=False, default="output", help='The file to store the plot.')
-    parser.add_argument('-e', '--empty', action="store_true", help='The file to store the plot.')
+    parser.add_argument('-e', '--empty', action="store_true", help='Flag to indicate no records')
+    parser.add_argument('-a', '--archive', action="store_true", help='Flag to indicate archive records')
 
     args = parser.parse_args()
     print(args.maze)
@@ -319,7 +324,6 @@ if __name__ == "__main__":
     records = None
     if not args.empty:
         if args.records is not None:
-            print("hi")
             rs = AgentRecordStore()
             rs.load(args.records)
             records = rs.records
@@ -327,7 +331,8 @@ if __name__ == "__main__":
     # render visualization
     draw_maze_records(maze_env,
                       records,
+                      filename=args.output,
+                      archive=args.archive,
                       width=params["width"],
                       height=params["height"],
-                      fig_height=params["fig_height"],
-                      filename=args.output)
+                      fig_height=params["fig_height"])

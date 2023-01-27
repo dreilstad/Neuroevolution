@@ -4,15 +4,21 @@ from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
 
 class Novelty:
 
-    def __init__(self, k=15, initial_threshold=10.0, archive_seed_size=1):
+    def __init__(self, domain, k=15, archive_seed_size=1):
         self.archive = []
         self.behaviors = {}
         self.novelty = {}
 
         self.k = k
-        self.k_archive = 1
-        self.threshold = initial_threshold
         self.archive_seed_size = archive_seed_size
+
+        initial_thresholds = {"retina": 0.7,
+                              "bipedal": 0.7,
+                              "mazerobot-medium": 10.0,
+                              "mazerobot-hard": 10.0,
+                              "tartarus": 5.0,
+                              "tartarus-deceptive": 5.0}
+        self.threshold = initial_thresholds[domain]
 
         self.num_added_to_archive = 0
         self.evals_since_archive_addition = 0
@@ -76,7 +82,7 @@ class Novelty:
         distances = self.euclidean_distance_to_archive(behavior)
 
         # sort list of distances ot get the k nearest neighbors
-        k = min(len(self.archive), self.k_archive)
+        k = min(len(self.archive), self.k)
         nearest_neighbors = sorted(zip(distances, list(range(len(self.archive)))))[:k]
         nearest_neighbors_distances, nearest_neighbors_indices = map(list, zip(*nearest_neighbors))
 

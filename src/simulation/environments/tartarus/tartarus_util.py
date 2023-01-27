@@ -3,18 +3,21 @@ from random import choice, choices
 import numpy as np
 
 
-def generate_configurations(N, K, sample_size=0):
+def generate_configurations(N, K, sample=0):
     box_configs = generate_all_possible_configurations(N - 2, K)
     invalid_config_indices = find_invalid_configuration_indices(box_configs)
     valid_configs = remove_invalid_configurations(box_configs, invalid_config_indices)
 
     complete_configs = generate_complete_configurations(valid_configs, N, K)
+
     test_config = choice(complete_configs)
+    agent_pos = _get_random_agent_position_in_config(test_config, N)
+    agent_dir = np.random.randint(0, 4)
 
-    if sample_size:
-        complete_configs = choices(complete_configs, k=sample_size)
+    if sample > 0:
+        complete_configs = choices(complete_configs, k=sample)
 
-    return complete_configs, test_config
+    return complete_configs, test_config, agent_pos, agent_dir
 
 
 def generate_complete_configurations(configurations, N, K):
@@ -89,3 +92,18 @@ def match_pattern(A, BLKSZ):
 
     # Get all actual indices & index into input array for final output
     return np.take(A, start_idx.ravel()[:, None] + offset_idx.ravel())
+
+
+def _get_random_agent_position_in_config(config, N):
+
+    boxes = []
+    for i in range(1, N-1):
+        for j in range(i, N-1):
+            if config[i][j] == 1:
+                boxes.append((i, j))
+
+    indices = np.arange(1, N - 1)
+    possible_positions = [(x, y) for x in indices for y in indices if (x, y) not in boxes]
+    agent_pos = choice(possible_positions)
+
+    return agent_pos

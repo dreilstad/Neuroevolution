@@ -1,6 +1,5 @@
 import os
 import multiprocessing as mp
-import numpy as np
 import neat
 import visualize
 from neat.nsga2 import NSGA2Reproduction
@@ -12,7 +11,7 @@ class Neuroevolution:
     def __init__(self, domain, simulator, objectives, config_file, num_generations, show, evaluator=None):
         self.domain = domain
         self.objectives = objectives
-        self.simulator = simulator(self.objectives)
+        self.simulator = simulator(self.objectives, self.domain)
         self.config_file = config_file
         self.num_generations = num_generations
         self.show = show
@@ -38,7 +37,7 @@ class Neuroevolution:
         g = self.pop.population[1]
         net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
         visualize.draw_net(net, f"init_net")
-        for i in range(101):
+        for i in range(21):
             g.mutate(self.neat_config.genome_config)
             if i % 10 == 0:
                 net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
@@ -69,11 +68,20 @@ class Neuroevolution:
         self.save_genome_fitness(self.results_data_path)
 
     def visualize_stats(self, winner_genome):
-        labels = {"performance":"Task Performance",
-                  "hamming":"Hamming Distance",
-                  "beh_div":"Behavioural Diversity (ad hoc)",
-                  "linear_cka":"Linear CKA",
-                  "rbf_cka":"RBF CKA"}
+        labels = {"performance": "Task Performance",
+                  "hamming": "Hamming Distance",
+                  "beh_div": "Behavioural Diversity (ad hoc)",
+                  "modularity": "Modularity (Q)",
+                  "mod_div": "Modularity Diversity",
+                  "linear_cka": "Linear CKA",
+                  "rbf_cka": "RBF CKA"}
+
+        domain_labels = {"retina": "Retina",
+                         "bipedal": "Bipedal Walker",
+                         "tartarus": "Tartarus",
+                         "tartarus-deceptive": "Deceptive Tartarus",
+                         "mazerobot-medium": "Maze navigation - Medium maze",
+                         "mazerobot-hard": "Maze navigation - Hard maze"}
 
         print('\nBest genome:\n{!s}'.format(winner_genome))
         winner_net = neat.nn.FeedForwardNetwork.create(winner_genome, self.neat_config)
@@ -90,26 +98,10 @@ class Neuroevolution:
         if len(self.objectives) > 1:
             checkpoints = load_checkpoints(self.checkpoint_path)
             plot_pareto_front_file = os.path.join(self.results_plot_path, f"pareto_front.png")
-            if self.domain == "xor":
-                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "XOR",
-                                         labels[self.objectives[0]], labels[self.objectives[1]],
-                                         4.0, 10000.0, show=self.show)
-            elif self.domain == "retina":
-                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Retina",
-                                         labels[self.objectives[0]], labels[self.objectives[1]],
-                                         1.0, 10000.0, show=self.show)
-            elif self.domain == "mazerobot-medium":
-                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Maze navigation - Medium maze",
-                                         labels[self.objectives[0]], labels[self.objectives[1]],
-                                         13.5, 10000.0, show=self.show)
-            elif self.domain == "mazerobot-hard":
-                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "Maze navigation - Hard maze",
-                                         labels[self.objectives[0]], labels[self.objectives[1]],
-                                         13.5, 10000.0, show=self.show)
-            elif self.domain == "bipedal":
-                visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, "BipedalWalker",
-                                         labels[self.objectives[0]], labels[self.objectives[1]],
-                                         500.0, 10000.0, show=self.show)
+
+            visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, domain_labels[self.domain],
+                                     labels[self.objectives[0]], labels[self.objectives[1]],
+                                     10000.0, 10000.0, show=self.show)
 
         clear_checkpoints(self.checkpoint_path, save_last=True)
 

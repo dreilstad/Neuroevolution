@@ -6,7 +6,7 @@ import neat
 from simulation.retina_simulation import RetinaSimulator
 from simulation.maze_simulation import MediumMazeSimulator, HardMazeSimulator
 from simulation.bipedal_walker_simulation import BipedalWalkerSimulator
-from simulation.tartarus_simulation import TartarusSimulator
+from simulation.tartarus_simulation import TartarusSimulator, DeceptiveTartarusSimulator
 
 
 def validate_input(args):
@@ -31,7 +31,8 @@ def validate_domain(domain):
                   "bipedal": BipedalWalkerSimulator,
                   "mazerobot-medium": MediumMazeSimulator,
                   "mazerobot-hard": HardMazeSimulator,
-                  "tartarus": TartarusSimulator}
+                  "tartarus": TartarusSimulator,
+                  "tartarus-deceptive": DeceptiveTartarusSimulator}
 
     if domain not in simulators:
         raise RuntimeError("Domain is no valid")
@@ -40,7 +41,7 @@ def validate_domain(domain):
 
 
 def validate_objectives(objectives):
-    valid_objectives = ["performance", "hamming", "beh_div", "mod_div", "Q", "linear_cka", "rbf_cka"]
+    valid_objectives = ["performance", "hamming", "beh_div", "mod_div", "modularity", "linear_cka", "rbf_cka"]
     for objective in objectives:
         if objective not in valid_objectives:
             raise RuntimeError(f"Objective '{objective}' is not valid")
