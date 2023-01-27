@@ -44,13 +44,13 @@ class Novelty:
             novelty = np.mean(nearest_neighbors)
             self.novelty[genome_id] = novelty
 
-        print(f"archive size = {len(self.archive)}")
-        print(f"number added to archive = {self.num_added_to_archive}")
+        print("Novelty Archive:")
+        print(f" - Archive size = {len(self.archive)}")
+        print(f" - Threshold = {self.threshold}")
+        print(f" - Number of behaviors added to archive = {self.num_added_to_archive}")
+        print(f" - Number of evals since last archive update = {self.evals_since_archive_addition}")
 
         self._update_archive_settings()
-
-        print(f"number of evals since last archive addition = {self.evals_since_archive_addition}")
-        print(f"threshold = {self.threshold}")
 
         # reset behavior dict
         self.behaviors = {}
@@ -132,12 +132,12 @@ class Novelty:
         return distance
 
     def _update_archive_settings(self):
-        # threshold is lowered if more than 1000 evaluations occured since last archive addition,
+        # threshold is lowered if more than 10 generations occured since last archive addition,
         # limit from "Novelty-based Multiobjectivization" paper
-        if self.evals_since_archive_addition >= 1000:
+        if self.evals_since_archive_addition >= len(self.behaviors)*10:
             self.threshold = self.threshold * 0.95
 
-        # threshold is increased if more than 10 behaviors were added to the archive during the generation
+        # threshold is increased if more than 5 behaviors were added to the archive during the generation
         if self.num_added_to_archive > 5:
             self.threshold = self.threshold * 1.05
 
