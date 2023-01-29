@@ -83,7 +83,7 @@ class Simulator:
                 elif objective == "mod_div":
                     fitnesses[i] = self.mod_div[genome_id]
                 elif objective == "linear_cka" or objective == "rbf_cka":
-                    fitnesses[i] = 1.0 / self.CKA[genome_id]
+                    fitnesses[i] = 1.0 - self.CKA[genome_id]
 
             genome.fitness.add(*fitnesses)
 
