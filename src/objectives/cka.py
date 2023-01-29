@@ -46,7 +46,7 @@ class CKA:
     def calculate_CKA_similarities_parallel(self, genomes):
         similarities = {genome_id: 0.0 for genome_id, _ in genomes}
 
-        with mp.Pool(mp.cpu_count()//2) as pool:
+        with mp.Pool(mp.cpu_count()//4) as pool:
             jobs = []
             all_combinations = list(combinations(genomes, 2))
             for (genome_A_id, genome_A), (genome_B_id, genome_B) in all_combinations:
