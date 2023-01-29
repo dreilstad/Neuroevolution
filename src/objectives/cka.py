@@ -54,6 +54,7 @@ class CKA:
                 jobs.append(pool.apply_async(_similarity_parallel, (X, Y, self.cka_similarity_func)))
 
             for job, ((genome_A_id, genome_A), (genome_B_id, genome_B)) in zip(jobs, all_combinations):
+                print(f"CKA comp: {genome_A_id} vs {genome_B_id}")
                 similarity_value = job.get(timeout=None)
                 similarities[genome_A_id] += similarity_value
                 similarities[genome_B_id] += similarity_value
