@@ -1,27 +1,17 @@
-import networkx as nx
-import networkx.algorithms.community as community
-import time
-import matplotlib.pyplot as plt
+from random import sample
+from itertools import product
 
-class A:
+a = {str(i):i for i in range(10)}
+print(a)
 
-    def __init__(self, s):
-        self.s = s
-        self.c = "123"
+def _generate_combinations(keys, samples=100):
+    generated_combinations = [tuple()] * (len(keys) * samples)
+    for i, key in enumerate(keys):
+        sampled_keys = sample(keys[:i] + keys[i + 1:], samples)
+        for j, s_key in enumerate(sampled_keys):
+            generated_combinations[i * samples + j] = (key, s_key)
 
+    return generated_combinations
 
-class B(A):
-
-    def __init__(self, s):
-        super().__init__(s=s)
-        self.c = "hei"
-
-
-
-a = A(1)
-print(a.s)
-print(a.c)
-
-b = B(1)
-print(b.s)
-print(b.c)
+keys = list(a.keys())
+print(_generate_combinations(keys, samples=3))

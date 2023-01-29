@@ -2,6 +2,7 @@ import math
 import numpy as np
 import multiprocessing as mp
 from itertools import combinations
+from random import sample
 
 class CKA:
 
@@ -54,7 +55,6 @@ class CKA:
                 jobs.append(pool.apply_async(_similarity_parallel, (X, Y, self.cka_similarity_func)))
 
             for job, ((genome_A_id, genome_A), (genome_B_id, genome_B)) in zip(jobs, all_combinations):
-                print(f"CKA comp: {genome_A_id} vs {genome_B_id}")
                 similarity_value = job.get(timeout=None)
                 similarities[genome_A_id] += similarity_value
                 similarities[genome_B_id] += similarity_value
@@ -62,6 +62,36 @@ class CKA:
         num_other_genomes = len(genomes) - 1
         self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
         self.activations = {}
+
+    def calculate_CKA_similarities_opt_parallel(self, genomes, samples=100):
+        similarities = {genome_id: 0.0 for genome_id, _ in genomes}
+        keys = [genome_id for genome_id, _ in genomes]
+
+        all_combinations = self._generate_combinations(keys, samples=samples)
+        with mp.Pool(mp.cpu_count()//4) as pool:
+            jobs = []
+            for genome_A_id, genome_B_id in all_combinations:
+                X = self.activations[genome_A_id]
+                Y = self.activations[genome_B_id]
+                jobs.append(pool.apply_async(_similarity_parallel, (X, Y, self.cka_similarity_func)))
+
+            for job, (genome_A_id, genome_B_id) in zip(jobs, all_combinations):
+                print(f"CKA comp: {genome_A_id} vs {genome_B_id}")
+                similarity_value = job.get(timeout=None)
+                similarities[genome_A_id] += similarity_value
+
+        self.similarity = {key: value / samples for key, value in similarities.items()}
+        self.activations = {}
+
+    @staticmethod
+    def _generate_combinations(keys, samples):
+        generated_combinations = [tuple()] * (len(keys) * samples)
+        for i, key in enumerate(keys):
+            sampled_keys = sample(keys[:i] + keys[i + 1:], samples)
+            for j, s_key in enumerate(sampled_keys):
+                generated_combinations[i * samples + j] = (key, s_key)
+
+        return generated_combinations
 
 def centering(K):
     n = K.shape[0]

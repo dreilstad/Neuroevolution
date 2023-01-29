@@ -66,7 +66,8 @@ class Simulator:
         if self.mod_div is not None:
             self.mod_div.calculate_modular_diversity(genomes)
         if self.CKA is not None:
-            self.CKA.calculate_CKA_similarities_parallel(genomes)
+            #self.CKA.calculate_CKA_similarities_parallel(genomes)
+            self.CKA.calculate_CKA_similarities_opt_parallel(genomes, samples=len(genomes)//5)
 
         # assign fitness values
         for genome_id, genome in genomes:
