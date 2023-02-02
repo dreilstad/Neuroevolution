@@ -19,7 +19,7 @@ class TartarusSimulator(Simulator):
     def simulate(self, neural_network):
 
         all_activations = None
-        if self.CKA is not None:
+        if self.CKA is not None or self.cos_sim is not None:
             all_activations = []
 
         sequence = None
@@ -48,7 +48,7 @@ class TartarusSimulator(Simulator):
                     sequence.extend([*state, *output])
 
                 # append activations if using CKA
-                if self.CKA is not None:
+                if self.CKA is not None or self.cos_sim is not None:
                     all_activations.append(activations)
 
                 # step
@@ -69,7 +69,7 @@ class TartarusSimulator(Simulator):
         return {"performance": task_performance,
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
-                "CKA": all_activations}
+                "activations": all_activations}
 
     def _get_novelty_characteristic(self, neural_network):
 

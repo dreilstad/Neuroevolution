@@ -12,7 +12,7 @@ class RetinaSimulator(Simulator):
     def simulate(self, neural_network):
 
         all_activations = None
-        if self.CKA is not None:
+        if self.CKA is not None or self.cos_sim is not None:
             all_activations = []
 
         sequence = None
@@ -32,7 +32,7 @@ class RetinaSimulator(Simulator):
                     sequence.extend([*net_input, *net_output])
 
                 # append activations if using CKA
-                if self.CKA is not None:
+                if self.CKA is not None or self.cos_sim is not None:
                     all_activations.append(activations)
 
         # calculate the task performance score
@@ -46,7 +46,7 @@ class RetinaSimulator(Simulator):
         return {"performance": task_performance,
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
-                "CKA": all_activations}
+                "activations": all_activations}
 
     @staticmethod
     def _evaluate(neural_network, left, right):

@@ -17,7 +17,7 @@ class MazeSimulator(Simulator):
         self.env.reset()
 
         all_activations = None
-        if self.CKA is not None:
+        if self.CKA is not None or self.cos_sim is not None:
             all_activations = []
 
         sequence = None
@@ -39,8 +39,8 @@ class MazeSimulator(Simulator):
             if self.hamming is not None:
                 sequence.extend([*state, *output])
 
-            # append activations if using CKA
-            if self.CKA is not None:
+            # append activations if using CKA or CosSim
+            if self.CKA is not None or self.cos_sim is not None:
                 all_activations.append(activations)
 
             if exit_found:
@@ -65,7 +65,7 @@ class MazeSimulator(Simulator):
         return {"performance": task_performance,
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
-                "CKA": all_activations,
+                "activations": all_activations,
                 "agent_record": record}
 
     def _get_novelty_characteristic(self, neural_network):

@@ -73,6 +73,7 @@ class Neuroevolution:
                   "beh_div": "Behavioural Diversity (ad hoc)",
                   "modularity": "Modularity (Q)",
                   "mod_div": "Modularity Diversity",
+                  "cos_sim": "Cosine Similarity",
                   "linear_cka": "Linear CKA",
                   "rbf_cka": "RBF CKA"}
 

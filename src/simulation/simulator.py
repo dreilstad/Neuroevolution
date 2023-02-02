@@ -5,6 +5,7 @@ from objectives.hamming import Hamming
 from objectives.novelty import Novelty
 from objectives.cka import CKA
 from objectives.modularity import Modularity, ModularityDiversity
+from objectives.cosine_similarity import CosineSimilarity
 
 
 class Simulator:
@@ -27,6 +28,8 @@ class Simulator:
         self.novelty = Novelty(self.domain) if "beh_div" in self.objectives else None
 
         # representational diversity objective
+        self.cos_sim = CosineSimilarity() if "cos_sim" in self.objectives else None
+
         self.CKA = None
         if "linear_cka" in self.objectives:
             self.CKA = CKA(linear_kernel=True)
@@ -65,6 +68,8 @@ class Simulator:
             self.novelty.calculate_novelty()
         if self.mod_div is not None:
             self.mod_div.calculate_modular_diversity(genomes)
+        if self.cos_sim is not None:
+            self.cos_sim.calculate_cosine_similarities(genomes)
         if self.CKA is not None:
             self.CKA.calculate_CKA_similarities_parallel(genomes)
             #self.CKA.calculate_CKA_similarities_opt_parallel(genomes, samples=len(genomes)//10)
@@ -83,8 +88,12 @@ class Simulator:
                     fitnesses[i] = self.Q[genome_id]
                 elif objective == "mod_div":
                     fitnesses[i] = self.mod_div[genome_id]
+                elif objective == "cos_sim":
+                    fitnesses[i] = 1.0 - self.cos_sim[genome_id]
                 elif objective == "linear_cka" or objective == "rbf_cka":
-                    fitnesses[i] = 1.0 - self.CKA[genome_id]
+                    with np.errstate(divide="ignore"):
+                        fitnesses[i] = np.minimum(-np.log(self.CKA[genome_id]), 5.0)
+                    #fitnesses[i] = 1.0 - self.CKA[genome_id]
 
             genome.fitness.add(*fitnesses)
 
@@ -101,7 +110,10 @@ class Simulator:
             self.novelty.add(genome_id, simulation_output["novelty"])
 
         if self.CKA is not None:
-            self.CKA.activations[genome_id] = np.array(simulation_output["CKA"])
+            self.CKA.activations[genome_id] = np.array(simulation_output["activations"])
+
+        if self.cos_sim is not None:
+            self.cos_sim.activations[genome_id] = np.array(simulation_output["activations"]).ravel()
 
         if self.Q is not None:
             self.Q[genome_id] = Modularity.calculate_modularity(simulation_output["nodes"],

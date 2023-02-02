@@ -4,6 +4,8 @@ import numpy as np
 import multiprocessing as mp
 
 from itertools import combinations
+import objectives.cca as cca
+from objectives.cosine_similarity import CosineSimilarity
 
 def centering(K):
     n = K.shape[0]
@@ -69,27 +71,75 @@ def parallel(all_X, pool):
     for job in jobs:
         job.get(timeout=None)
 
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+
 if __name__=="__main__":
+
+    cos = CosineSimilarity()
 
     N = 250
     all_X = []
     for i in range(N):
-        all_X.append(np.random.randn(64, np.random.randint(16, 128)))
+        all_X.append(np.random.randn(1028, 1028))
 
-    repdivs = []
+
+    all_combinations = []
+
     for i in range(100):
         X = np.random.choice(np.arange(N))
         Y = np.random.choice(np.arange(N))
+        all_combinations.append((all_X[X], all_X[Y]))
 
-        sim = linear_CKA(all_X[X],all_X[Y])
-        print(f"idx: X={X}, Y={Y}")
-        print(f"shapes: X.shape={all_X[X].shape}, Y.shape={all_X[Y].shape}")
-        print(f"similarity: {sim}")
-        print(f"RepDiv: {1/sim}\n")
-        repdivs.append(1/sim)
+    sim = cosine_similarity(all_combinations[0][0].ravel(), all_combinations[0][1].ravel())
+    print(f"CosSim = {sim}")
+    print(f"1 - CosSim = {1.0 - sim}")
+    print(f"1/CosSim = {1.0 / sim}\n")
 
-    print(f"Max RepDiv: {max(repdivs)}")
-    print(f"Min RepDiv: {min(repdivs)}")
+    sim = cosine_similarity(all_combinations[0][1].ravel(), all_combinations[0][0].ravel())
+    print(f"CosSim = {sim}")
+    print(f"1 - CosSim = {1.0 - sim}")
+    print(f"1/CosSim = {1.0 / sim}\n")
+    exit(0)
+    avg_cka_time = 0.0
+    avg_cos_sim_time = 0.0
+    a = []
+    for X, Y in all_combinations:
+        start = time.time()
+        sim = linear_CKA(X, Y)
+        avg_cka_time += time.time() - start
+        print(f"CKA = {sim}")
+        print(f"1 - CKA = {1.0 - sim}")
+        print(f"1/CKA = {1.0/sim}\n")
+
+        start = time.time()
+        sim = cosine_similarity(X.ravel(), Y.ravel())
+        avg_cos_sim_time += time.time() - start
+        a.append(1.0 - sim)
+        print(f"CosSim = {sim}")
+        print(f"1 - CosSim = {1.0 - sim}")
+        print(f"1/CosSim = {1.0/sim}\n")
+
+    print(f"Average CKA time per call: {avg_cka_time / 100} s")
+    print(f"Average Cosine Similarity time per call: {avg_cos_sim_time / 100} s")
+    print(np.max(a))
+    print(np.min(a))
+    import matplotlib.pyplot as plt
+
+    q25, q75 = np.percentile(a, [25, 75])
+    bin_width = 2 * (q75 - q25) * len(a) ** (-1 / 3)
+    bins = round((max(a) - min(a)) / bin_width)
+    print("Freedman–Diaconis number of bins:", bins)
+    plt.hist(a, density=True, bins=bins)
+    plt.ylabel('Probability')
+    plt.xlabel('Data')
+    plt.show()
+
+    sim = cosine_similarity(all_combinations[0][0].ravel(), all_combinations[0][0].ravel())
+    print(f"CosSim = {sim}")
+    print(f"1 - CosSim = {1.0 - sim}")
+    print(f"1/CosSim = {1.0 / sim}\n")
 
     #pool = mp.Pool(mp.cpu_count())
     #pool.close()
