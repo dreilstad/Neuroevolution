@@ -55,7 +55,7 @@ class TartarusEnvironment(MiniGridEnv):
                     )
                     boxes.append((i, j))
 
-        print("Finished placing boxes")
+        #print("Finished placing boxes")
 
         # if not using fixed agent, use random position and direction
         if self.fixed_agent_pos is None:
@@ -77,7 +77,7 @@ class TartarusEnvironment(MiniGridEnv):
             )
             self.agent_dir = self.fixed_agent_dir
 
-        print("Finished placing agent")
+        #print("Finished placing agent")
 
         return
 
