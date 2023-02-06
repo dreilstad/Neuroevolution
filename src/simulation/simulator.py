@@ -91,9 +91,7 @@ class Simulator:
                 elif objective == "cos_sim":
                     fitnesses[i] = 1.0 - self.cos_sim[genome_id]
                 elif objective == "linear_cka" or objective == "rbf_cka":
-                    with np.errstate(divide="ignore"):
-                        fitnesses[i] = np.minimum(-np.log(self.CKA[genome_id]), 5.0)
-                    #fitnesses[i] = 1.0 - self.CKA[genome_id]
+                    fitnesses[i] = 1.0 - self.CKA[genome_id]
 
             genome.fitness.add(*fitnesses)
 

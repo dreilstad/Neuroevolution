@@ -71,7 +71,7 @@ class Neuroevolution:
         labels = {"performance": "Task Performance",
                   "hamming": "Hamming Distance",
                   "beh_div": "Behavioural Diversity (ad hoc)",
-                  "modularity": "Modularity (Q)",
+                  "modularity": "Modularity (Q-score)",
                   "mod_div": "Modularity Diversity",
                   "cos_sim": "Cosine Similarity",
                   "linear_cka": "Linear CKA",
