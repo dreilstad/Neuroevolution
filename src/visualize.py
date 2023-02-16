@@ -42,6 +42,57 @@ def plot_stats(statistics, filename, ylog=False, show=False):
     plt.close()
 
 
+def plot_pareto_2d_fronts(checkpoints, filename, domain, label0, label1, invert=True):
+    fitnesses = [[f.fitness for _, f in c.population.items()] for c in checkpoints]
+    generations = [c.generation + 1 for c in checkpoints]
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.set_title(domain, fontsize=15)
+
+    if invert:
+        ax.set_xlabel(label1, fontsize=15)
+        ax.set_ylabel(label0, fontsize=15)
+    else:
+        ax.set_xlabel(label0, fontsize=15)
+        ax.set_ylabel(label1, fontsize=15)
+
+    cmap = plt.get_cmap("plasma_r")
+    norm = plt.Normalize(generations[0], generations[-1])
+
+    cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
+
+    cb.set_label(label="Generation", size=15)
+    cb.ax.tick_params(labelsize=15)
+
+    fronts_x = []
+    fronts_y = []
+    for gen in fitnesses:
+        front_x = []
+        front_y = []
+        for fitness in gen:
+            if fitness.rank == 0:
+                front_x.append(fitness.values[0])
+                front_y.append(fitness.values[1])
+
+        fronts_x.append(front_x)
+        fronts_y.append(front_y)
+
+    for front_x, front_y, generation in zip(fronts_x, fronts_y, generations):
+        color = cmap(norm(generation))
+        sorted_x_y = [(x,y) for x, y in sorted(zip(front_x, front_y), key=lambda pair: pair[0])]
+        x_sorted = [x for x, _ in sorted_x_y]
+        y_sorted = [y for _, y in sorted_x_y]
+        ax.plot(y_sorted, x_sorted, linewidth=0.75, color=color)
+
+        ax.scatter(y_sorted, x_sorted, s=15, color=color)
+
+
+    #plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(filename, format="pdf")
+    plt.close()
+
 def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, invert=True, show=False):
     fitnesses = [[f.fitness for _, f in c.population.items()] for c in checkpoints]
 

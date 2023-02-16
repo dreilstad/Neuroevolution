@@ -98,11 +98,10 @@ class Neuroevolution:
         # plot pareto front
         if len(self.objectives) > 1:
             checkpoints = load_checkpoints(self.checkpoint_path)
-            plot_pareto_front_file = os.path.join(self.results_plot_path, f"pareto_front.png")
+            plot_pareto_front_file = os.path.join(self.results_plot_path, f"pareto_front.pdf")
 
-            visualize.plot_pareto_2d(checkpoints, plot_pareto_front_file, domain_labels[self.domain],
-                                     labels[self.objectives[0]], labels[self.objectives[1]],
-                                     10000.0, 10000.0, show=self.show)
+            visualize.plot_pareto_2d_fronts(checkpoints, plot_pareto_front_file, domain_labels[self.domain],
+                                            labels[self.objectives[0]], labels[self.objectives[1]])
 
         clear_checkpoints(self.checkpoint_path, save_last=True)
 
