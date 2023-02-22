@@ -77,7 +77,8 @@ class Neuroevolution:
                   "linear_cka": "Linear CKA",
                   "rbf_cka": "RBF CKA"}
 
-        domain_labels = {"retina": "Retina",
+        domain_labels = {"retina": "Retina 2x2",
+                         "retina-hard": "Retina 3x3",
                          "bipedal": "Bipedal Walker",
                          "tartarus": "Tartarus",
                          "tartarus-deceptive": "Deceptive Tartarus",

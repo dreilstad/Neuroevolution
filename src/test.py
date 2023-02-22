@@ -1,22 +1,26 @@
 
+from simulation.environments.retina.retina_environment import HardRetinaEnvironment, VisualObject, Side
 
-import numpy as np
+env = HardRetinaEnvironment()
+print(env)
 
-a = np.eye(4)
-print(a)
-b = np.eye(4)
-d = a + b
-print(d)
-c = np.eye(4)
-d = d + c
-print(d)
+test_patterns = [(VisualObject("o o o\no o o\no o o", side=Side.LEFT, size=3),
+                  VisualObject("o o o\no o o\no o o", side=Side.RIGHT, size=3)),
+                 (VisualObject(". . .\no o o\no o o", side=Side.LEFT, size=3),
+                  VisualObject("o o o\no o o\n. . .", side=Side.RIGHT, size=3)),
+                 (VisualObject("o o o\n. . .\n. . .", side=Side.LEFT, size=3),
+                  VisualObject(". . .\n. . .\no o o", side=Side.RIGHT, size=3)),
+                 (VisualObject("o . .\no . .\no . .", side=Side.LEFT, size=3),
+                  VisualObject(". . o\n. . o\n. . o", side=Side.RIGHT, size=3))]
 
-e = np.zeros(c.shape)
-print(e)
+print("TEST PATTERNS:")
+for left, right in test_patterns:
+    print(left)
+    print(right)
+    print("")
 
-with np.errstate(divide="ignore"):
-    print(np.minimum(-np.log(0.0), 5))
-
+print(len(env.visual_objects))
+print(env.N)
 """
 from random import sample
 

@@ -1,5 +1,5 @@
 from simulation.simulator import Simulator
-from simulation.environments.retina.retina_environment import RetinaEnvironment, Side, VisualObject
+from simulation.environments.retina.retina_environment import RetinaEnvironment, HardRetinaEnvironment, Side, VisualObject
 
 
 class RetinaSimulator(Simulator):
@@ -19,12 +19,12 @@ class RetinaSimulator(Simulator):
         if self.hamming is not None:
             sequence = []
 
-        # Evaluate the detector ANN against 256 combintaions of the left and the right visual objects
+        # Evaluate the neural network against all combinations of the left and the right visual objects
         # at correct and incorrect sides of retina
         error_sum = 0.0
         for left in self.env.visual_objects:
             for right in self.env.visual_objects:
-                error, net_input, net_output, activations = RetinaSimulator._evaluate(neural_network, left, right)
+                error, net_input, net_output, activations = self._evaluate(neural_network, left, right)
                 error_sum += error
 
                 # save sequence if using hamming distance
@@ -36,10 +36,10 @@ class RetinaSimulator(Simulator):
                     all_activations.append(activations)
 
         # calculate the task performance score
-        task_performance = 1.0 - float(error_sum/256.0)
+        task_performance = 1.0 - float(error_sum/self.env.N)
 
         # store network output of test patterns as genome's novelty characteristics
-        novelty = self._get_novelty_characteristic(neural_network)
+        novelty = self.env.get_novelty_characteristic(neural_network) if self.novelty is not None else None
 
         # [performance, hamming, novelty, CKA, Q]
         #return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
@@ -56,7 +56,7 @@ class RetinaSimulator(Simulator):
 
         # prepare input
         inputs = left.get_data() + right.get_data()
-        inputs.append(0.5) # the bias
+        #inputs.append(0.5) # the bias
 
         # activate
         network_output, activations = neural_network.activate(inputs)
@@ -76,24 +76,9 @@ class RetinaSimulator(Simulator):
 
         return error, inputs, network_output, activations
 
-    def _get_novelty_characteristic(self, neural_network):
 
-        # behavior vector
-        behavior = []
+class HardRetinaSimulator(RetinaSimulator):
 
-        # test patterns to feed through the network to get behavior
-        test_patterns = [(VisualObject("o .\n. o", side=Side.LEFT), VisualObject(". o\no .", side=Side.RIGHT)),
-                         (VisualObject(". o\no .", side=Side.LEFT), VisualObject("o .\n. o", side=Side.RIGHT)),
-                         (VisualObject("o o\no o", side=Side.LEFT), VisualObject(". .\n. .", side=Side.RIGHT)),
-                         (VisualObject(". .\n. .", side=Side.LEFT), VisualObject("o o\no o", side=Side.RIGHT))]
-
-        # iterate test patterns
-        for test_pattern_left, test_pattern_right in test_patterns:
-
-            test_input = test_pattern_left.get_data() + test_pattern_right.get_data()
-            test_input.append(0.5)
-
-            network_output, _ = neural_network.activate(test_input)
-            behavior.extend(network_output)
-
-        return behavior
+    def __init__(self, objectives, domain):
+        super().__init__(objectives, domain)
+        self.env = HardRetinaEnvironment()
