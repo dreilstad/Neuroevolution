@@ -6,9 +6,10 @@ from random import sample
 
 class CKA:
 
-    def __init__(self, linear_kernel):
+    def __init__(self, linear_kernel, evenly_sampled=1):
         self.activations = {}
         self.similarity = {}
+        self.evenly_sampled = evenly_sampled
 
         if linear_kernel:
             self.cka_similarity_func = linear_CKA
@@ -34,6 +35,11 @@ class CKA:
             X = X[:min_n, :]
             Y = Y[:min_n, :]
 
+            # samples evenly from activations, if evenly_sampled si 1 then all activations are used
+            sample_idx = np.round(np.linspace(0, X.shape[0] - 1, X.shape[0] // self.evenly_sampled)).astype(int)
+            X = X[sample_idx, :]
+            Y = Y[sample_idx, :]
+
             similarity_value = self.cka_similarity_func(X, Y)
 
             similarities[genome_A_id] += similarity_value
@@ -52,7 +58,8 @@ class CKA:
             for (genome_A_id, genome_A), (genome_B_id, genome_B) in all_combinations:
                 X = self.activations[genome_A_id]
                 Y = self.activations[genome_B_id]
-                jobs.append(pool.apply_async(_similarity_parallel, (X, Y, self.cka_similarity_func)))
+                jobs.append(pool.apply_async(_similarity_parallel,
+                                             (X, Y, self.cka_similarity_func, self.evenly_sampled)))
 
             for job, ((genome_A_id, genome_A), (genome_B_id, genome_B)) in zip(jobs, all_combinations):
                 similarity_value = job.get(timeout=None)
@@ -93,6 +100,7 @@ class CKA:
 
         return generated_combinations
 
+
 def centering(K):
     n = K.shape[0]
     unit = np.ones([n, n])
@@ -102,7 +110,7 @@ def centering(K):
     # HKH are the same with KH, KH is the first centering, H(KH) do the second time,
     # results are the same with one time centering
     return np.dot(np.dot(H, K), H)
-    # return np.dot(H, K)  # KH
+
 
 def rbf(X, sigma=None):
     GX = np.dot(X, X.T)
@@ -133,6 +141,7 @@ def linear_CKA(X, Y):
     epsilon = 0.000001
     return hsic / ((var1 * var2) + epsilon)
 
+
 def kernel_CKA(X, Y, sigma=None):
     hsic = kernel_HSIC(X, Y, sigma)
     var1 = np.sqrt(kernel_HSIC(X, X, sigma))
@@ -140,7 +149,8 @@ def kernel_CKA(X, Y, sigma=None):
 
     return hsic / (var1 * var2)
 
-def _similarity_parallel(X, Y, similarity_func):
+
+def _similarity_parallel(X, Y, similarity_func, evenly_sampled=1):
 
     if X.shape[1] > Y.shape[1]:
         X, Y = Y, X
@@ -149,6 +159,12 @@ def _similarity_parallel(X, Y, similarity_func):
     min_n = min(X.shape[0], Y.shape[0])
     X = X[:min_n, :]
     Y = Y[:min_n, :]
+
+    # samples evenly from activations, if evenly_sampled si 1 then all activations are used
+    if evenly_sampled > 1:
+        sample_idx = np.round(np.linspace(0, X.shape[0] - 1, X.shape[0] // evenly_sampled)).astype(int)
+        X = X[sample_idx, :]
+        Y = Y[sample_idx, :]
 
     return similarity_func(X, Y)
 

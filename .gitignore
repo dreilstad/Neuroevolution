@@ -55,6 +55,7 @@ cover/
 #*.pickle
 
 ea_plotting_scripts/
+test.py
 
 # Translations
 *.mo
