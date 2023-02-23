@@ -1,4 +1,24 @@
 
+import numpy as np
+
+a = np.zeros((256, 10))
+b = np.zeros((256, 16))
+
+print(a.shape)
+print(b.shape)
+
+idx = np.round(np.linspace(0, a.shape[0]-1, a.shape[0]//4)).astype(int)
+print(idx)
+
+a = a[idx, :]
+b = b[idx, :]
+
+print(a.shape)
+print(b.shape)
+
+
+
+"""
 from simulation.environments.retina.retina_environment import HardRetinaEnvironment, VisualObject, Side
 
 env = HardRetinaEnvironment()
@@ -21,7 +41,7 @@ for left, right in test_patterns:
 
 print(len(env.visual_objects))
 print(env.N)
-"""
+
 from random import sample
 
 
