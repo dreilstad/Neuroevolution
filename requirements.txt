@@ -30,6 +30,7 @@ pandas==1.5.1
 Pillow==9.2.0
 pyerf==1.0.1
 pygame==2.1.0
+pygraphviz==1.10
 pyparsing==3.0.9
 python-dateutil==2.8.2
 pytz==2022.5
