@@ -4,6 +4,7 @@ in order to evaluate multiple genomes at once.
 """
 import neat
 from multiprocessing import Pool
+from multiprocessing.pool import ApplyResult
 
 
 class ParallelEvaluator(object):
@@ -50,8 +51,11 @@ class MultiObjectiveParallelEvaluator(ParallelEvaluator):
             genome.fitness = neat.nsga2.NSGA2Fitness(*[0.0]*self.simulator.num_objectives)
             jobs.append(self.pool.apply_async(self.eval_function, [neural_network]))
 
-        for job, (genome_id, genome) in zip(jobs, genomes):
-            simulation_output = job.get(timeout=self.timeout)
+        pool.close()
+        map(ApplyResult.wait, jobs)
+        simulation_outputs = [result.get() for result in jobs]
+
+        for simulation_output, (genome_id, genome) in zip(simulation_outputs, genomes):
             simulation_output["nodes"] = config.genome_config.input_keys + list(genome.nodes)
             simulation_output["edges"] = list(genome.connections)
             simulation_output["nodes_of_interest"] = nodes_of_interest
