@@ -1,5 +1,6 @@
 import argparse
 import neat
+import os
 from neuroevolution import Neuroevolution
 from util import validate_input
 
@@ -9,7 +10,7 @@ def main(domain, simulator, objectives, config_file, num_generations, show, para
     if parallel:
         evaluator = neat.MultiObjectiveParallelEvaluator
 
-    num_experiments = 25
+    num_experiments = 10
     for _ in range(num_experiments):
         ne = Neuroevolution(domain, simulator, objectives, config_file,
                             num_generations, show, evaluator=evaluator)
@@ -61,6 +62,12 @@ if __name__=="__main__":
     print(args.show)
     print(args.parallel)
     simulator, config, objectives, num_generations = validate_input(args)
+
+    if "linear_cka" in objectives:
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["MKL_NUM_THREADS"] = "1"
+        os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
     main(args.domain, simulator, objectives, config, num_generations, args.show, args.parallel)
     """

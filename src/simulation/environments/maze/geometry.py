@@ -6,7 +6,6 @@
 #
 
 import math
-from numba import njit
 
 def deg_to_rad(degrees):
     return degrees / 180.0 * math.pi
@@ -121,7 +120,7 @@ class Line:
             The tuple with the first value indicating if intersection was found (True/False)
             and the second value holding the intersection Point or None
         """
-        """
+
         A, B, C, D = self.a, self.b, line.a, line.b
 
         rTop = (A.y - C.y) * (D.x - C.x) - (A.x - C.x) * (D.y - C.y)
@@ -142,13 +141,6 @@ class Line:
             return True, Point(x, y)
 
         return False, None
-        """
-        A, B, C, D = self.a, self.b, line.a, line.b
-        found, intersection = _numba_intersection(A.x, A.y, B.x, B.y, C.x, C.y, D.x, D.y)
-        if found:
-            return found, Point(intersection[0], intersection[1])
-        else:
-            return found, None
 
     def distance(self, p):
         """
@@ -190,26 +182,3 @@ class Line:
         Returns the nicely formatted string representation of this line.
         """
         return "Line (%.1f, %.1f) -> (%.1f, %.1f)" % (self.a.x, self.a.y, self.b.x, self.b.y)
-
-@njit
-def _numba_intersection(A_x, A_y, B_x, B_y, C_x, C_y, D_x, D_y):
-    #A, B, C, D = self.a, self.b, line.a, line.b
-
-    rTop = (A_y - C_y) * (D_x - C_x) - (A_x - C_x) * (D_y - C_y)
-    rBot = (B_x - A_x) * (D_y - C_y) - (B_y - A_y) * (D_x - C_x)
-
-    sTop = (A_y - C_y) * (B_x - A_x) - (A_x - C_x) * (B_y - A_y)
-    sBot = (B_x - A_x) * (D_y - C_y) - (B_y - A_y) * (D_x - C_x)
-
-    if rBot == 0 or sBot == 0:
-        # lines are parallel
-        return False, None
-
-    r = rTop / rBot
-    s = sTop / sBot
-    if r > 0 and r < 1 and s > 0 and s < 1:
-        x = A_x + r * (B_x - A_x)
-        y = A_y + r * (B_y - A_y)
-        return True, (x, y)
-
-    return False, None

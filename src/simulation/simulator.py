@@ -20,7 +20,8 @@ class Simulator:
         self.performance = {} if "performance" in self.objectives else None
 
         # structural diversity objective
-        self.Q = {} if "modularity" in self.objectives else None
+        self.Q = {}
+        self.mod = True if "modularity" in self.objectives else False
         self.mod_div = ModularityDiversity() if "mod_div" in self.objectives else None
 
         # behavioral diversity objective
@@ -32,7 +33,7 @@ class Simulator:
 
         self.CKA = None
         if "linear_cka" in self.objectives:
-            self.CKA = CKA(linear_kernel=True)
+            self.CKA = CKA(linear_kernel=True, evenly_sampled=4)
         elif "rbf_cka" in self.objectives:
             self.CKA = CKA(linear_kernel=False)
 
@@ -113,7 +114,7 @@ class Simulator:
         if self.cos_sim is not None:
             self.cos_sim.activations[genome_id] = np.array(simulation_output["activations"]).ravel()
 
-        if self.Q is not None:
+        if self.mod:
             self.Q[genome_id] = Modularity.calculate_modularity(simulation_output["nodes"],
                                                                 simulation_output["edges"])
 

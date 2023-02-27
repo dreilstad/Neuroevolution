@@ -35,10 +35,11 @@ class CKA:
             X = X[:min_n, :]
             Y = Y[:min_n, :]
 
-            # samples evenly from activations, if evenly_sampled si 1 then all activations are used
-            sample_idx = np.round(np.linspace(0, X.shape[0] - 1, X.shape[0] // self.evenly_sampled)).astype(int)
-            X = X[sample_idx, :]
-            Y = Y[sample_idx, :]
+            # samples evenly from activations, if evenly_sampled is 1 then all activations are used
+            if self.evenly_sampled > 1:
+                sample_idx = np.round(np.linspace(0, X.shape[0] - 1, X.shape[0] // self.evenly_sampled)).astype(int)
+                X = X[sample_idx, :]
+                Y = Y[sample_idx, :]
 
             similarity_value = self.cka_similarity_func(X, Y)
 

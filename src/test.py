@@ -1,24 +1,42 @@
 
-import numpy as np
+from multiprocessing import Pool, cpu_count
+from multiprocessing.pool import ApplyResult
+import time
 
-a = np.zeros((256, 10))
-b = np.zeros((256, 16))
 
-print(a.shape)
-print(b.shape)
+class A:
 
-idx = np.round(np.linspace(0, a.shape[0]-1, a.shape[0]//4)).astype(int)
-print(idx)
-
-a = a[idx, :]
-b = b[idx, :]
-
-print(a.shape)
-print(b.shape)
-
+    def __init__(self, idx):
+        self.idx = idx
 
 
 """
+def get_idx(idx):
+
+    time.sleep(3)
+    return idx
+
+def main():
+    a = [A(i) for i in range(10)]
+
+    with Pool(cpu_count() // 4) as pool:
+        jobs = []
+        for b in a:
+            jobs.append(pool.apply_async(get_idx, [b.idx]))
+
+        pool.close()
+        map(ApplyResult.wait, jobs)
+        outputs = [result.get() for result in jobs]
+
+        print([c.idx for c in a])
+        print(outputs)
+
+
+if __name__ == "__main__":
+    main()
+
+
+
 from simulation.environments.retina.retina_environment import HardRetinaEnvironment, VisualObject, Side
 
 env = HardRetinaEnvironment()

@@ -3,7 +3,6 @@ digraph svg {
 	node [fontsize=9 height=0.2 shape=circle width=0.2]
 	{
 		rank=same
-		-9 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
 		-8 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
 		-7 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
 		-6 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
@@ -23,23 +22,16 @@ digraph svg {
 	}
 	{
 		rank=same
-		808 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		1755 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		204 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		414 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		474 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		1311 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
-		103 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
-		2840 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		151 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
 	}
-	-9 -> -8 [arrowhead=none color=white style=invisible]
 	-8 -> -7 [arrowhead=none color=white style=invisible]
 	-7 -> -6 [arrowhead=none color=white style=invisible]
 	-6 -> -5 [arrowhead=none color=white style=invisible]
@@ -48,27 +40,22 @@ digraph svg {
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
 	0 -> 1 [arrowhead=none color=white style=invisible]
-	-3 -> 808 [arrowhead=none color=black dir=forward style=solid]
-	-4 -> 1755 [arrowhead=none color=black dir=forward style=solid]
-	-5 -> 204 [arrowhead=none color=black dir=forward style=solid]
-	-2 -> 414 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 474 [arrowhead=none color=black dir=forward style=solid]
+	-2 -> 1311 [arrowhead=none color=black dir=forward style=solid]
+	-1 -> 1 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 1 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 1 [arrowhead=none color=black dir=forward style=solid]
+	-8 -> 1 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 1 [arrowhead=none color=black dir=forward style=solid]
+	1311 -> 1 [arrowhead=none color=black dir=forward style=solid]
+	-7 -> 151 [arrowhead=none color=black dir=forward style=solid]
+	474 -> 151 [arrowhead=none color=black dir=forward style=solid]
 	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-2 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-4 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-9 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	204 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-9 -> 103 [arrowhead=none color=black dir=forward style=solid]
-	1755 -> 103 [arrowhead=none color=black dir=forward style=solid]
-	103 -> 2840 [arrowhead=none color=black dir=forward style=solid]
-	-1 -> 1 [arrowhead=none color=black dir=forward style=solid]
-	-5 -> 1 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 1 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 1 [arrowhead=none color=black dir=forward style=solid]
-	414 -> 1 [arrowhead=none color=black dir=forward style=solid]
-	808 -> 1 [arrowhead=none color=black dir=forward style=solid]
-	2840 -> 1 [arrowhead=none color=black dir=forward style=solid]
+	151 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	474 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }
