@@ -56,23 +56,20 @@ class RetinaSimulator(Simulator):
 
         # prepare input
         inputs = left.get_data() + right.get_data()
-        #inputs.append(0.5) # the bias
 
         # activate
         network_output, activations = neural_network.activate(inputs)
 
         # get outputs
-        network_output[0] = 1.0 if network_output[0] >= 0.5 else 0.0
-        network_output[1] = 1.0 if network_output[1] >= 0.5 else 0.0
+        left_output = 1 if network_output[0] >= 0.5 else 0
+        right_output = 1 if network_output[1] >= 0.5 else 0
 
         # set ground truth
-        left_target = 1.0 if left.side == Side.LEFT or left.side == Side.BOTH else 0.0
-        right_target = 1.0 if right.side == Side.RIGHT or right.side == Side.BOTH else 0.0
-        targets = [left_target, right_target]
+        left_target = 1 if left.side == Side.LEFT or left.side == Side.BOTH else 0
+        right_target = 1 if right.side == Side.RIGHT or right.side == Side.BOTH else 0
 
-        # find error as a distance between outputs and groud truth
-        error = (network_output[0] - targets[0]) * (network_output[0] - targets[0]) + \
-                (network_output[1] - targets[1]) * (network_output[1] - targets[1])
+        # left AND right operation, error is 0 if true, error is 1 if false
+        error = float(not(left_output == left_target and right_output == right_target))
 
         return error, inputs, network_output, activations
 

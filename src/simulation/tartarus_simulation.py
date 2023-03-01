@@ -66,7 +66,7 @@ class TartarusSimulator(Simulator):
 
             task_performance += env.state_evaluation()
 
-        novelty = self._get_novelty_characteristic(neural_network)
+        novelty = self._get_novelty_characteristic(neural_network) if self.novelty is not None else None
 
         task_performance = task_performance / len(self.configurations)
 

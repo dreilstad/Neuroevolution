@@ -46,7 +46,7 @@ class MazeSimulator(Simulator):
             if exit_found:
                 break
 
-        novelty = self._get_novelty_characteristic(None)
+        novelty = self._get_novelty_characteristic(None) if self.novelty is not None else None
 
         # Calculate the fitness score based on distance from exit
         task_performance = 1.0

@@ -47,7 +47,7 @@ class BipedalWalkerSimulator(Simulator):
             if self.CKA is not None or self.cos_sim is not None:
                 all_activations.append(activations)
 
-        novelty = self._get_novelty_characteristic(neural_network)
+        novelty = self._get_novelty_characteristic(neural_network) if self.novelty is not None else None
 
         # [performance, hamming, novelty, CKA, Q]
         return {"performance": task_performance,

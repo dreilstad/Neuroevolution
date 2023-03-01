@@ -182,7 +182,6 @@ class HardRetinaEnvironment(RetinaEnvironment):
         for test_pattern_left, test_pattern_right in test_patterns:
 
             test_input = test_pattern_left.get_data() + test_pattern_right.get_data()
-            #test_input.append(0.5)
 
             network_output, _ = neural_network.activate(test_input)
             behavior.extend(network_output)
