@@ -137,8 +137,8 @@ class HardRetinaEnvironment(RetinaEnvironment):
         self.visual_objects.append(VisualObject("o o o\n. . o\n. . o", side=Side.LEFT, size=3))
         self.visual_objects.append(VisualObject(". . o\n. o o\no o o", side=Side.LEFT, size=3))
         self.visual_objects.append(VisualObject("o o o\n. o o\n. . o", side=Side.LEFT, size=3))
-        self.visual_objects.append(VisualObject("o o .\no . .\n. . .", side=Side.RIGHT, size=3))
-        self.visual_objects.append(VisualObject(". . .\no . .\no o .", side=Side.RIGHT, size=3))
+        self.visual_objects.append(VisualObject("o o .\no . .\n. . .", side=Side.LEFT, size=3))
+        self.visual_objects.append(VisualObject(". . .\no . .\no o .", side=Side.LEFT, size=3))
         self.visual_objects.append(VisualObject(". o o\no o o\no o o", side=Side.LEFT, size=3))
         self.visual_objects.append(VisualObject("o o o\no o o\n. o o", side=Side.LEFT, size=3))
 
