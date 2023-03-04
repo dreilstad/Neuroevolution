@@ -1,6 +1,7 @@
 import math
 import numpy as np
-import multiprocessing as mp
+from multiprocessing import Pool, cpu_count
+from multiprocessing.pool import ApplyResult
 from itertools import combinations
 from random import sample
 
@@ -53,7 +54,7 @@ class CKA:
     def calculate_CKA_similarities_parallel(self, genomes):
         similarities = {genome_id: 0.0 for genome_id, _ in genomes}
 
-        with mp.Pool(mp.cpu_count()//4) as pool:
+        with Pool(cpu_count()//4) as pool:
             jobs = []
             all_combinations = list(combinations(genomes, 2))
             for (genome_A_id, genome_A), (genome_B_id, genome_B) in all_combinations:
@@ -62,33 +63,17 @@ class CKA:
                 jobs.append(pool.apply_async(_similarity_parallel,
                                              (X, Y, self.cka_similarity_func, self.evenly_sampled)))
 
-            for job, ((genome_A_id, genome_A), (genome_B_id, genome_B)) in zip(jobs, all_combinations):
-                similarity_value = job.get(timeout=None)
+            pool.close()
+            map(ApplyResult.wait, jobs)
+            similarity_values = [result.get() for result in jobs]
+
+            for similarity_value, ((genome_A_id, genome_A), (genome_B_id, genome_B)) in zip(similarity_values,
+                                                                                            all_combinations):
                 similarities[genome_A_id] += similarity_value
                 similarities[genome_B_id] += similarity_value
 
         num_other_genomes = len(genomes) - 1
         self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
-        self.activations = {}
-
-    def calculate_CKA_similarities_opt_parallel(self, genomes, samples=100):
-        similarities = {genome_id: 0.0 for genome_id, _ in genomes}
-        keys = [genome_id for genome_id, _ in genomes]
-
-        all_combinations = self._generate_combinations(keys, samples=samples)
-        with mp.Pool(mp.cpu_count()//4) as pool:
-            jobs = []
-            for genome_A_id, genome_B_id in all_combinations:
-                X = self.activations[genome_A_id]
-                Y = self.activations[genome_B_id]
-                jobs.append(pool.apply_async(_similarity_parallel, (X, Y, self.cka_similarity_func)))
-
-            for job, (genome_A_id, genome_B_id) in zip(jobs, all_combinations):
-                print(f"CKA comp: {genome_A_id} vs {genome_B_id}")
-                similarity_value = job.get(timeout=None)
-                similarities[genome_A_id] += similarity_value
-
-        self.similarity = {key: value / samples for key, value in similarities.items()}
         self.activations = {}
 
     @staticmethod
