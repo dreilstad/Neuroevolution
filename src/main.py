@@ -63,11 +63,11 @@ if __name__=="__main__":
     print(args.parallel)
     simulator, config, objectives, num_generations = validate_input(args)
 
-    #if "linear_cka" in objectives:
-    #    os.environ["OPENBLAS_NUM_THREADS"] = "1"
-    #    os.environ["OMP_NUM_THREADS"] = "1"
-    #    os.environ["MKL_NUM_THREADS"] = "1"
-    #    os.environ["NUMEXPR_NUM_THREADS"] = "1"
+    if "linear_cka" in objectives:
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["MKL_NUM_THREADS"] = "1"
+        os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
     main(args.domain, simulator, objectives, config, num_generations, args.show, args.parallel)
     """

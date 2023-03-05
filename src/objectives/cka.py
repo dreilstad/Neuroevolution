@@ -1,4 +1,5 @@
 import math
+import os
 import numpy as np
 from multiprocessing import Pool, cpu_count
 from multiprocessing.pool import ApplyResult
@@ -52,6 +53,8 @@ class CKA:
         self.activations = {}
 
     def calculate_CKA_similarities_parallel(self, genomes):
+
+        os.system("taskset -p 0xff %d" % os.getpid())
         similarities = {genome_id: 0.0 for genome_id, _ in genomes}
 
         with Pool(40) as pool:
