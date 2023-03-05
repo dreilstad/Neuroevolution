@@ -72,7 +72,7 @@ class Simulator:
         if self.cos_sim is not None:
             self.cos_sim.calculate_cosine_similarities(genomes)
         if self.CKA is not None:
-            self.CKA.calculate_CKA_similarities_parallel(genomes)
+            self.CKA.calculate_CKA_similarities(genomes)
             #self.CKA.calculate_CKA_similarities_opt_parallel(genomes, samples=len(genomes)//10)
 
         # assign fitness values

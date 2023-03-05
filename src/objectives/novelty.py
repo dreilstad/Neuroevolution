@@ -13,6 +13,7 @@ class Novelty:
         self.archive_seed_size = archive_seed_size
 
         initial_thresholds = {"retina": 0.85,
+                              "retina-hard": 0.85,
                               "bipedal": 0.7,
                               "mazerobot-medium": 10.0,
                               "mazerobot-hard": 10.0,
