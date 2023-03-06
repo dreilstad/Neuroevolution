@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 from neat.math_util import mean
-from neat.reporting import ReporterSet
+from neat.reporting import ReporterSet, StdOutReporter
 
 
 class CompleteExtinctionException(Exception):
@@ -49,6 +49,13 @@ class Population(object):
 
     def remove_reporter(self, reporter):
         self.reporters.remove(reporter)
+
+    def get_generation_runtimes(self):
+        for r in self.reporters.reporters:
+            if isinstance(r, StdOutReporter):
+                return r.generation_times
+
+        return None
 
     def run(self, fitness_function, n=None):
         if self.config.no_fitness_termination and (n is None):

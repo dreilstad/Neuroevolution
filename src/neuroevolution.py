@@ -1,4 +1,5 @@
 import os
+import time
 import multiprocessing as mp
 import neat
 import visualize
@@ -16,6 +17,7 @@ class Neuroevolution:
         self.num_generations = num_generations
         self.show = show
         self.evaluator = evaluator
+        self.runtime = 0.0
 
         self.neat_config = neat.Config(neat.DefaultGenome, NSGA2Reproduction, self.config_file)
 
@@ -66,6 +68,9 @@ class Neuroevolution:
 
         # save fitness
         self.save_genome_fitness(self.results_data_path)
+
+        # save runtime
+        self.save_avg_generation_runtime(self.results_data_path)
 
     def visualize_stats(self, winner_genome):
         labels = {"performance": "Task Performance",
@@ -118,3 +123,14 @@ class Neuroevolution:
         with open(os.path.join(self.results_data_path, f"best_fitness_{run_number}.dat"), "w") as f:
             for gen, fitness in zip(generation, best_fitness):
                 f.write(f"{gen} {fitness}\n")
+
+    def save_avg_generation_runtime(self, save_path):
+        run_number = os.path.basename(os.path.normpath(save_path))
+
+        generation_runtimes = self.pop.get_generation_runtimes()
+
+        if generation_runtimes is not None:
+            average_runtime = sum(generation_runtimes) / len(generation_runtimes)
+
+            with open(os.path.join(self.results_data_path, f"avg_gen_time_{run_number}.txt"), "w") as f:
+                f.write(f"{average_runtime}")
