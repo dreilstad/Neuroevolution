@@ -17,7 +17,7 @@ class MazeSimulator(Simulator):
         self.env.reset()
 
         all_activations = None
-        if self.CKA is not None or self.cos_sim is not None:
+        if self.CKA is not None or self.CCA is not None:
             all_activations = []
 
         sequence = None
@@ -39,8 +39,8 @@ class MazeSimulator(Simulator):
             if self.hamming is not None:
                 sequence.extend([*state, *output])
 
-            # append activations if using CKA or CosSim
-            if self.CKA is not None or self.cos_sim is not None:
+            # append activations if using CKA or CCA
+            if self.CKA is not None or self.CCA is not None:
                 all_activations.append(activations)
 
             if exit_found:

@@ -24,17 +24,15 @@ class TartarusSimulator(Simulator):
     def simulate(self, neural_network):
 
         all_activations = None
-        if self.CKA is not None or self.cos_sim is not None:
+        if self.CKA is not None or self.CCA is not None:
             all_activations = []
 
         sequence = None
         if self.hamming is not None:
             sequence = []
 
-        #print("Starting Tartarus simulation")
         task_performance = 0.0
         for i, configuration in enumerate(self.configurations):
-            #print(f"config {i}")
             env = self.environment_cls(configuration)
             state, _ = env.reset()
             state = np.concatenate((state, [0, 0, 0]))
@@ -52,8 +50,8 @@ class TartarusSimulator(Simulator):
                 if self.hamming is not None:
                     sequence.extend([*state, *output])
 
-                # append activations if using CKA
-                if self.CKA is not None or self.cos_sim is not None:
+                # append activations if using CKA or CCA
+                if self.CKA is not None or self.CCA is not None:
                     all_activations.append(activations)
 
                 # step

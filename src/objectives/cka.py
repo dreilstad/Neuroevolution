@@ -1,22 +1,11 @@
-import math
-import os
 import numpy as np
-from multiprocessing import Pool, cpu_count
-from multiprocessing.pool import ApplyResult
 from itertools import combinations
-from random import sample
 
 class CKA:
 
-    def __init__(self, linear_kernel, evenly_sampled=1):
+    def __init__(self):
         self.activations = {}
         self.similarity = {}
-        self.evenly_sampled = evenly_sampled
-
-        if linear_kernel:
-            self.cka_similarity_func = linear_CKA
-        else:
-            self.cka_similarity_func = kernel_CKA
 
     def __getitem__(self, key):
         return self.similarity[key]
@@ -25,135 +14,170 @@ class CKA:
         similarities = {genome_id: 0.0 for genome_id, _ in genomes}
 
         for (genome_A_id, genome_A), (genome_B_id, genome_B) in combinations(genomes, 2):
-
             X = self.activations[genome_A_id]
             Y = self.activations[genome_B_id]
 
-            if X.shape[1] > Y.shape[1]:
-                X, Y = Y, X
-
-            # find min N samples, limit to match dim of X and Y
+            # find min N samples, limit to match first dim of X and Y
             min_n = min(X.shape[0], Y.shape[0])
             X = X[:min_n, :]
             Y = Y[:min_n, :]
 
-            # samples evenly from activations, if evenly_sampled is 1 then all activations are used
-            if self.evenly_sampled > 1:
-                sample_idx = np.round(np.linspace(0, X.shape[0] - 1, X.shape[0] // self.evenly_sampled)).astype(int)
-                X = X[sample_idx, :]
-                Y = Y[sample_idx, :]
-
-            similarity_value = self.cka_similarity_func(X, Y)
+            similarity_value = self.feature_space_linear_cka(X, Y)
 
             similarities[genome_A_id] += similarity_value
             similarities[genome_B_id] += similarity_value
 
-        num_other_genomes = len(genomes) - 1
-        self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
-        self.activations = {}
-
-    def calculate_CKA_similarities_parallel(self, genomes):
-
-        os.system("taskset -p 0xff %d" % os.getpid())
-        similarities = {genome_id: 0.0 for genome_id, _ in genomes}
-
-        with Pool(40) as pool:
-            jobs = []
-            all_combinations = list(combinations(genomes, 2))
-            for (genome_A_id, genome_A), (genome_B_id, genome_B) in all_combinations:
-                X = self.activations[genome_A_id]
-                Y = self.activations[genome_B_id]
-                jobs.append(pool.apply_async(_similarity_parallel,
-                                             (X, Y, self.cka_similarity_func, self.evenly_sampled)))
-
-            pool.close()
-            map(ApplyResult.wait, jobs)
-            similarity_values = [result.get() for result in jobs]
-
-            for similarity_value, ((genome_A_id, genome_A), (genome_B_id, genome_B)) in zip(similarity_values,
-                                                                                            all_combinations):
-                similarities[genome_A_id] += similarity_value
-                similarities[genome_B_id] += similarity_value
-
-        num_other_genomes = len(genomes) - 1
+        num_other_genomes = float(len(genomes) - 1)
         self.similarity = {key: value / num_other_genomes for key, value in similarities.items()}
         self.activations = {}
 
     @staticmethod
-    def _generate_combinations(keys, samples):
-        generated_combinations = [tuple()] * (len(keys) * samples)
-        for i, key in enumerate(keys):
-            sampled_keys = sample(keys[:i] + keys[i + 1:], samples)
-            for j, s_key in enumerate(sampled_keys):
-                generated_combinations[i * samples + j] = (key, s_key)
+    def gram_linear(x):
+        """Compute Gram (kernel) matrix for a linear kernel.
 
-        return generated_combinations
+        Args:
+            x: A num_examples x num_features matrix of features.
 
+        Returns:
+            A num_examples x num_examples Gram matrix of examples.
+        """
 
-def centering(K):
-    n = K.shape[0]
-    unit = np.ones([n, n])
-    I = np.eye(n)
-    H = I - unit / n
+        return x.dot(x.T)
 
-    # HKH are the same with KH, KH is the first centering, H(KH) do the second time,
-    # results are the same with one time centering
-    return np.dot(np.dot(H, K), H)
+    @staticmethod
+    def gram_rbf(x, threshold=1.0):
+        """Compute Gram (kernel) matrix for an RBF kernel.
 
+        Args:
+            x: A num_examples x num_features matrix of features.
+            threshold: Fraction of median Euclidean distance to use as RBF kernel bandwidth.
 
-def rbf(X, sigma=None):
-    GX = np.dot(X, X.T)
-    KX = np.diag(GX) - GX + (np.diag(GX) - GX).T
-    if sigma is None:
-        mdist = np.median(KX[KX != 0])
-        sigma = math.sqrt(mdist)
-    KX *= - 0.5 / (sigma * sigma)
-    KX = np.exp(KX)
-    return KX
+        Returns:
+            A num_examples x num_examples Gram matrix of examples.
+        """
 
+        dot_products = x.dot(x.T)
+        sq_norms = np.diag(dot_products)
+        sq_distances = -2 * dot_products + sq_norms[:, None] + sq_norms[None, :]
+        sq_median_distance = np.median(sq_distances)
+        return np.exp(-sq_distances / (2 * threshold**2 * sq_median_distance))
 
-def kernel_HSIC(X, Y, sigma):
-    return np.sum(centering(rbf(X, sigma)) * centering(rbf(Y, sigma)))
+    @staticmethod
+    def center_gram(gram, unbiased=False):
+        """Center a symmetric Gram matrix.
 
+        This is equvialent to centering the (possibly infinite-dimensional) features
+        induced by the kernel before computing the Gram matrix.
 
-def linear_HSIC(X, Y):
-    L_X = np.dot(X, X.T)
-    L_Y = np.dot(Y, Y.T)
-    return np.sum(centering(L_X) * centering(L_Y))
+        Args:
+            gram: A num_examples x num_examples symmetric matrix.
+            unbiased: Whether to adjust the Gram matrix in order to compute an unbiased estimate of HSIC.
+                      (Note that this estimator may be negative)
 
+        Returns:
+            A symmetric matrix with centered columns and rows.
+        """
 
-def linear_CKA(X, Y):
-    hsic = linear_HSIC(X, Y)
-    var1 = np.sqrt(linear_HSIC(X, X))
-    var2 = np.sqrt(linear_HSIC(Y, Y))
+        if not np.allclose(gram, gram.T):
+            raise ValueError("Input must be a symmetric matrix")
 
-    epsilon = 0.000001
-    return hsic / ((var1 * var2) + epsilon)
+        gram = gram.copy()
 
+        if unbiased:
+            n = gram.shape[0]
+            np.fill_diagonal(gram, 0)
+            means = np.sum(gram, 0, dtype=np.float64) / (n - 2)
+            means -= np.sum(means) / (2 * (n - 1))
+            gram -= means[:, None]
+            gram -= means[None, :]
+            np.fill_diagonal(gram, 0)
+        else:
+            means = np.mean(gram, 0, dtype=np.float64)
+            means -= np.mean(means) / 2
+            gram -= means[:, None]
+            gram -= means[None, :]
 
-def kernel_CKA(X, Y, sigma=None):
-    hsic = kernel_HSIC(X, Y, sigma)
-    var1 = np.sqrt(kernel_HSIC(X, X, sigma))
-    var2 = np.sqrt(kernel_HSIC(Y, Y, sigma))
+        return gram
 
-    return hsic / (var1 * var2)
+    def cka(self, gram_x, gram_y, debiased=False):
+        """Compute CKA.
 
+        Args:
+            gram_x: A num_examples x num_examples Gram matrix.
+            gram_y: A num_examples x num_examples Gram matrix.
+            debiased: Use unbiased estimator of HSIC. CKA may still be biased.
 
-def _similarity_parallel(X, Y, similarity_func, evenly_sampled=1):
+        Returns:
+            The value of CKA between X and Y.
+        """
 
-    if X.shape[1] > Y.shape[1]:
-        X, Y = Y, X
+        gram_x = self.center_gram(gram_x, unbiased=debiased)
+        gram_y = self.center_gram(gram_y, unbiased=debiased)
 
-    # find min N samples, limit to match dim of X and Y
-    min_n = min(X.shape[0], Y.shape[0])
-    X = X[:min_n, :]
-    Y = Y[:min_n, :]
+        scaled_hsic = gram_x.ravel().dot(gram_y.ravel())
 
-    # samples evenly from activations, if evenly_sampled si 1 then all activations are used
-    if evenly_sampled > 1:
-        sample_idx = np.round(np.linspace(0, X.shape[0] - 1, X.shape[0] // evenly_sampled)).astype(int)
-        X = X[sample_idx, :]
-        Y = Y[sample_idx, :]
+        normalization_x = np.linalg.norm(gram_x)
+        normalization_y = np.linalg.norm(gram_y)
+        return scaled_hsic / (normalization_x * normalization_y)
 
-    return similarity_func(X, Y)
+    def feature_space_linear_cka(self, features_x, features_y, debiased=False):
+        """Compute CKA with a linear kernel, in feature space.
 
+        This is typically faster than computing the Gram matrix when there are fewer
+        features than examples.
+
+        Args:
+            features_x: A num_examples x num_features matrix of features.
+            features_y: A num_examples x num_features matrix of features.
+            debiased: Use unbiased estimator of dot product similarity. CKA may still debiased.
+                      (Note that this estimator may be negative)
+
+        Returns:
+            The value of CKA between X and Y.
+        """
+
+        features_x = features_x - np.mean(features_x, 0, keepdims=True)
+        features_y = features_y - np.mean(features_y, 0, keepdims=True)
+
+        dot_product_similarity = np.linalg.norm(features_x.T.dot(features_y))**2
+        normalization_x = np.linalg.norm(features_x.T.dot(features_x))
+        normalization_y = np.linalg.norm(features_y.T.dot(features_y))
+
+        if debiased:
+            n = features_x.shape[0]
+            sum_squared_rows_x = np.einsum("ij,ij->i", features_x, features_x)
+            sum_squared_rows_y = np.einsum("ij,ij->i", features_y, features_y)
+            squared_norm_x = np.sum(sum_squared_rows_x)
+            squared_norm_y = np.sum(sum_squared_rows_y)
+
+            dot_product_similarity = self._debiased_dot_product_similarity_helper(dot_product_similarity,
+                                                                                  sum_squared_rows_x,
+                                                                                  sum_squared_rows_y,
+                                                                                  squared_norm_x,
+                                                                                  squared_norm_y,
+                                                                                  n)
+            normalization_x = np.sqrt(self._debiased_dot_product_similarity_helper(normalization_x**2,
+                                                                                   sum_squared_rows_x,
+                                                                                   sum_squared_rows_x,
+                                                                                   squared_norm_x,
+                                                                                   squared_norm_x,
+                                                                                   n))
+            normalization_y = np.sqrt(self._debiased_dot_product_similarity_helper(normalization_y**2,
+                                                                                   sum_squared_rows_y,
+                                                                                   sum_squared_rows_y,
+                                                                                   squared_norm_y,
+                                                                                   squared_norm_y,
+                                                                                   n))
+
+        epsilon = 0.0000001
+        return dot_product_similarity / ((normalization_x * normalization_y) + epsilon)
+
+    @staticmethod
+    def _debiased_dot_product_similarity_helper(xty, sum_squared_rows_x, sum_squared_rows_y,
+                                                squared_norm_x, squared_norm_y, n):
+        """
+        Helper for computing debiased dot product similarity (i.e. linear HSIC)
+        """
+
+        return xty - n / (n - 2.0) * sum_squared_rows_x.dot(sum_squared_rows_y) \
+               + squared_norm_x * squared_norm_y / ((n - 1) * (n - 2))

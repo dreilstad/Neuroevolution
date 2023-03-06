@@ -73,9 +73,8 @@ class Neuroevolution:
                   "beh_div": "Behavioural Diversity (ad hoc)",
                   "modularity": "Modularity (Q-score)",
                   "mod_div": "Modularity Diversity",
-                  "cos_sim": "Cosine Similarity",
-                  "linear_cka": "Linear CKA",
-                  "rbf_cka": "RBF CKA"}
+                  "rep_div_cka": "Representational Diversity (Linear CKA)",
+                  "rep_div_cca": "Representational Diversity (CCA)"}
 
         domain_labels = {"retina": "Retina 2x2",
                          "retina-hard": "Retina 3x3",

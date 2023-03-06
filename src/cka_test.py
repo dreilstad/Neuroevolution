@@ -2,10 +2,99 @@ import math
 import time
 import numpy as np
 import multiprocessing as mp
-
+from numba.typed import List
 from itertools import combinations
-import objectives.cca as cca
-from objectives.cosine_similarity import CosineSimilarity
+
+
+
+def gram_linear(x):
+    return x.dot(x.T)
+
+
+def gram_rbf(x, threshold=1.0):
+    dot_products = x.dot(x.T)
+    sq_norms = np.diag(dot_products)
+    sq_distances = -2 * dot_products + sq_norms[:, None] + sq_norms[None, :]
+    sq_median_distance = np.median(sq_distances)
+    return np.exp(-sq_distances / (2 * threshold**2 * sq_median_distance))
+
+
+def center_gram(gram, unbiased=False):
+    if not np.allclose(gram, gram.T):
+        raise ValueError("Input must be a symmetric matrix")
+
+    gram = gram.copy()
+
+    if unbiased:
+        n = gram.shape[0]
+        np.fill_diagonal(gram, 0)
+        means = np.sum(gram, 0, dtype=np.float64) / (n - 2)
+        means -= np.sum(means) / (2 * (n - 1))
+        gram -= means[:, None]
+        gram -= means[None, :]
+        np.fill_diagonal(gram, 0)
+    else:
+        means = np.mean(gram, 0, dtype=np.float64)
+        means -= np.mean(means) / 2
+        gram -= means[:, None]
+        gram -= means[None, :]
+
+    return gram
+
+
+def cka(gram_x, gram_y, debiased=False):
+    gram_x = center_gram(gram_x, unbiased=debiased)
+    gram_y = center_gram(gram_y, unbiased=debiased)
+
+    scaled_hsic = gram_x.ravel().dot(gram_y.ravel())
+
+    normalization_x = np.linalg.norm(gram_x)
+    normalization_y = np.linalg.norm(gram_y)
+    return scaled_hsic / (normalization_x * normalization_y)
+
+
+def _debiased_dot_product_similarity_helper(xty, sum_squared_rows_x, sum_squared_rows_y,
+                                            squared_norm_x, squared_norm_y, n):
+    return xty - n / (n - 2.0) * sum_squared_rows_x.dot(sum_squared_rows_y) \
+           + squared_norm_x * squared_norm_y / ((n - 1) * (n - 2))
+
+
+def feature_space_linear_cka(features_x, features_y, debiased=False):
+
+    features_x = features_x - np.mean(features_x, 0, keepdims=True)
+    features_y = features_y - np.mean(features_y, 0, keepdims=True)
+
+    dot_product_similarity = np.linalg.norm(features_x.T.dot(features_y))**2
+    normalization_x = np.linalg.norm(features_x.T.dot(features_x))
+    normalization_y = np.linalg.norm(features_y.T.dot(features_y))
+
+    if debiased:
+        n = features_x.shape[0]
+        sum_squared_rows_x = np.einsum("ij,ij->i", features_x, features_x)
+        sum_squared_rows_y = np.einsum("ij,ij->i", features_y, features_y)
+        squared_norm_x = np.sum(sum_squared_rows_x)
+        squared_norm_y = np.sum(sum_squared_rows_y)
+
+        dot_product_similarity = _debiased_dot_product_similarity_helper(dot_product_similarity,
+                                                                         sum_squared_rows_x,
+                                                                         sum_squared_rows_y,
+                                                                         squared_norm_x,
+                                                                         squared_norm_y,
+                                                                         n)
+        normalization_x = np.sqrt(_debiased_dot_product_similarity_helper(normalization_x**2,
+                                                                          sum_squared_rows_x,
+                                                                          sum_squared_rows_x,
+                                                                          squared_norm_x,
+                                                                          squared_norm_x,
+                                                                          n))
+        normalization_y = np.sqrt(_debiased_dot_product_similarity_helper(normalization_y**2,
+                                                                          sum_squared_rows_y,
+                                                                          sum_squared_rows_y,
+                                                                          squared_norm_y,
+                                                                          squared_norm_y,
+                                                                          n))
+
+    return dot_product_similarity / (normalization_x * normalization_y)
 
 def centering(K):
     n = K.shape[0]
@@ -17,7 +106,6 @@ def centering(K):
     # results are the same with one time centering
     return np.dot(np.dot(H, K), H)
     # return np.dot(H, K)  # KH
-
 
 
 def rbf(X, sigma=None):
@@ -46,7 +134,8 @@ def linear_CKA(X, Y):
     var1 = np.sqrt(linear_HSIC(X, X))
     var2 = np.sqrt(linear_HSIC(Y, Y))
 
-    return hsic / (var1 * var2)
+    epsilon = 0.000001
+    return hsic / ((var1 * var2) + epsilon)
 
 
 def kernel_CKA(X, Y, sigma=None):
@@ -56,10 +145,10 @@ def kernel_CKA(X, Y, sigma=None):
 
     return hsic / (var1 * var2)
 
-def sequential(all_X):
-    for X, Y in combinations(all_X, 2):
-        linear_CKA(X, Y)
 
+def sequential(combs):
+    for X, Y in combs:
+        result = linear_CKA(X, Y)
 
 
 def parallel(all_X, pool):
@@ -75,94 +164,73 @@ def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 
+def cca(features_x, features_y):
+    qx, _ = np.linalg.qr(features_x)
+    qy, _ = np.linalg.qr(features_y)
+    return np.linalg.norm(qx.T.dot(qy))**2 / min(features_x.shape[1], features_y.shape[1])
+
+
 if __name__=="__main__":
 
-    cos = CosineSimilarity()
-
-    N = 250
+    N = 50
     all_X = []
     for i in range(N):
-        all_X.append(np.random.randn(1028, 1028))
+        all_X.append(np.random.randn(256, 32))
 
-
-    all_combinations = []
-
-    for i in range(100):
-        X = np.random.choice(np.arange(N))
-        Y = np.random.choice(np.arange(N))
-        all_combinations.append((all_X[X], all_X[Y]))
-
-    sim = cosine_similarity(all_combinations[0][0].ravel(), all_combinations[0][1].ravel())
-    print(f"CosSim = {sim}")
-    print(f"1 - CosSim = {1.0 - sim}")
-    print(f"1/CosSim = {1.0 / sim}\n")
-
-    sim = cosine_similarity(all_combinations[0][1].ravel(), all_combinations[0][0].ravel())
-    print(f"CosSim = {sim}")
-    print(f"1 - CosSim = {1.0 - sim}")
-    print(f"1/CosSim = {1.0 / sim}\n")
-    exit(0)
-    avg_cka_time = 0.0
-    avg_cos_sim_time = 0.0
-    a = []
-    for X, Y in all_combinations:
-        start = time.time()
-        sim = linear_CKA(X, Y)
-        avg_cka_time += time.time() - start
-        print(f"CKA = {sim}")
-        print(f"1 - CKA = {1.0 - sim}")
-        print(f"1/CKA = {1.0/sim}\n")
-
-        start = time.time()
-        sim = cosine_similarity(X.ravel(), Y.ravel())
-        avg_cos_sim_time += time.time() - start
-        a.append(1.0 - sim)
-        print(f"CosSim = {sim}")
-        print(f"1 - CosSim = {1.0 - sim}")
-        print(f"1/CosSim = {1.0/sim}\n")
-
-    print(f"Average CKA time per call: {avg_cka_time / 100} s")
-    print(f"Average Cosine Similarity time per call: {avg_cos_sim_time / 100} s")
-    print(np.max(a))
-    print(np.min(a))
-    import matplotlib.pyplot as plt
-
-    q25, q75 = np.percentile(a, [25, 75])
-    bin_width = 2 * (q75 - q25) * len(a) ** (-1 / 3)
-    bins = round((max(a) - min(a)) / bin_width)
-    print("Freedman–Diaconis number of bins:", bins)
-    plt.hist(a, density=True, bins=bins)
-    plt.ylabel('Probability')
-    plt.xlabel('Data')
-    plt.show()
-
-    sim = cosine_similarity(all_combinations[0][0].ravel(), all_combinations[0][0].ravel())
-    print(f"CosSim = {sim}")
-    print(f"1 - CosSim = {1.0 - sim}")
-    print(f"1/CosSim = {1.0 / sim}\n")
-
-    #pool = mp.Pool(mp.cpu_count())
-    #pool.close()
     """
-    print(mp.cpu_count())
-    start = time.time()
-    with mp.Pool(mp.cpu_count()//2) as pool:
-        parallel(all_X, pool)
-    parallel_time = time.time() - start
-
     start = time.time()
     sequential(all_X)
-    seq_time = time.time() - start
-
-    print(f"Sequential runtime: {seq_time} s")
-    print(f"Parallel runtime: {parallel_time} s")
+    end = time.time()
+    print(f"Sequential runtime: {end - start} s")
     """
+    combs = list(combinations(all_X, 2))
 
 
+    X = np.random.randn(256, 42)
+    Y = np.random.randn(256, 63)
+    cka_res = cka(gram_linear(X), gram_linear(Y))
+    feature_res = feature_space_linear_cka(X, Y)
+    old_res = linear_CKA(X, Y)
+    cca_res = cca(X, Y)
+    print(f"Linear CKA from Examples: {cka_res}")
+    print(f"Linear CKA from Features: {feature_res}")
+    print(f"Linear CKA (old): {old_res}")
+    print(f"CCA: {cca_res}")
 
+    cka_res = cka(gram_linear(Y), gram_linear(X))
+    feature_res = feature_space_linear_cka(Y, X)
+    old_res = linear_CKA(Y, X)
+    cca_res = cca(Y, X)
+    print(f"Linear CKA from Examples: {cka_res}")
+    print(f"Linear CKA from Features: {feature_res}")
+    print(f"Linear CKA (old): {old_res}")
+    print(f"CCA: {cca_res}")
 
+    """
+    start = time.time()
+    for X, Y in combs:
+        linear_CKA(X, Y)
+    end = time.time()
+    print(f"Old CKA: {end - start} s")
+    
+    start = time.time()
+    for X, Y in combs:
+        cka(gram_linear(X), gram_linear(Y))
+    end = time.time()
+    print(f"New CKA: {end - start} s")
 
+    start = time.time()
+    for X, Y in combs:
+        feature_space_linear_cka(X, Y)
+    end = time.time()
+    print(f"New CKA (feature space): {end - start} s")
 
+    start = time.time()
+    for X, Y in combs:
+        cca(X, Y)
+    end = time.time()
+    print(f"CCA: {end - start} s")
+    """
 
 
 

@@ -45,7 +45,7 @@ def validate_objectives(objectives):
     valid_objectives = ["performance",
                         "hamming", "beh_div",
                         "mod_div", "modularity",
-                        "cos_sim", "linear_cka", "rbf_cka"]
+                        "rep_div_cka", "rep_div_cca"]
     for objective in objectives:
         if objective not in valid_objectives:
             raise RuntimeError(f"Objective '{objective}' is not valid")

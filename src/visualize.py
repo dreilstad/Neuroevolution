@@ -1,8 +1,6 @@
 import warnings
 import graphviz
-import random
 import argparse
-import os
 
 import matplotlib.pyplot as plt
 import numpy as np

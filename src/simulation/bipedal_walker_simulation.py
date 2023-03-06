@@ -17,7 +17,7 @@ class BipedalWalkerSimulator(Simulator):
         self.env.reset()
 
         all_activations = None
-        if self.CKA is not None or self.cos_sim is not None:
+        if self.CKA is not None or self.CCA is not None:
             all_activations = []
 
         sequence = None
@@ -43,8 +43,8 @@ class BipedalWalkerSimulator(Simulator):
             if self.hamming is not None:
                 sequence.extend([*state, *action])
 
-            # append activations if using CKA
-            if self.CKA is not None or self.cos_sim is not None:
+            # append activations if using CKA or CCA
+            if self.CKA is not None or self.CCA is not None:
                 all_activations.append(activations)
 
         novelty = self._get_novelty_characteristic(neural_network) if self.novelty is not None else None

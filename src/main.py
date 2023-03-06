@@ -56,18 +56,12 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    print(args.domain)
-    print(args.config_file)
-    print(args.objectives)
-    print(args.show)
-    print(args.parallel)
+    print(f"Domain: {args.domain}")
+    print(f"Config: {args.config_file}")
+    print(f"Objectives: {args.objectives}")
+    print(f"Parallel: {args.parallel}")
+    print(f"Show figures: {args.show}")
     simulator, config, objectives, num_generations = validate_input(args)
-
-    if "linear_cka" in objectives:
-        os.environ["OPENBLAS_NUM_THREADS"] = "1"
-        os.environ["OMP_NUM_THREADS"] = "1"
-        os.environ["MKL_NUM_THREADS"] = "1"
-        os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
     main(args.domain, simulator, objectives, config, num_generations, args.show, args.parallel)
     """
