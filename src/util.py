@@ -3,7 +3,7 @@ import glob
 import argparse
 import neat
 
-from simulation.retina_simulation import RetinaSimulator, HardRetinaSimulator
+from simulation.retina_simulation import RetinaSimulator, HardRetinaSimulator, HardRetinaExtendedSimulator
 from simulation.maze_simulation import MediumMazeSimulator, HardMazeSimulator
 from simulation.bipedal_walker_simulation import BipedalWalkerSimulator
 from simulation.tartarus_simulation import TartarusSimulator, DeceptiveTartarusSimulator
@@ -29,6 +29,7 @@ def validate_config_file(filename):
 def validate_domain(domain):
     simulators = {"retina": RetinaSimulator,
                   "retina-hard": HardRetinaSimulator,
+                  "retina-hard-extended": HardRetinaExtendedSimulator,
                   "bipedal": BipedalWalkerSimulator,
                   "mazerobot-medium": MediumMazeSimulator,
                   "mazerobot-hard": HardMazeSimulator,

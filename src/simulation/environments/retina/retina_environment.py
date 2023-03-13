@@ -6,10 +6,13 @@
 from enum import Enum
 import numpy as np
 
+
 class Side(Enum):
     LEFT = 1
     RIGHT = 2
     BOTH = 3
+    MIDDLE = 4
+
 
 class VisualObject:
     """
@@ -158,7 +161,6 @@ class HardRetinaEnvironment(RetinaEnvironment):
         self.visual_objects.append(VisualObject("o o .\no o o\no o o", side=Side.RIGHT, size=3))
         self.visual_objects.append(VisualObject("o o o\no o o\no o .", side=Side.RIGHT, size=3))
 
-
     def get_novelty_characteristic(self, neural_network):
 
         # behavior vector
@@ -178,6 +180,88 @@ class HardRetinaEnvironment(RetinaEnvironment):
         for test_pattern_left, test_pattern_right in test_patterns:
 
             test_input = test_pattern_left.get_data() + test_pattern_right.get_data()
+
+            network_output, _ = neural_network.activate(test_input)
+            behavior.extend(network_output)
+
+        return behavior
+
+
+class HardRetinaEnvironmentExtended(RetinaEnvironment):
+
+    def __init__(self):
+        super().__init__()
+        self.N = float(len(self.visual_objects) * len(self.visual_objects) * len(self.visual_objects))
+
+    def create_data_set(self):
+        # set left side objects
+        self.visual_objects.append(VisualObject(". . o o\n. . o o\n. . . .\n. . . .", side=Side.LEFT, size=4))
+        #self.visual_objects.append(VisualObject(". . . .\n. . o o\n. . o o\n. . . .", side=Side.LEFT, size=4))
+        self.visual_objects.append(VisualObject(". . . .\n. . . .\n. . o o\n. . o o", side=Side.LEFT, size=4))
+        #self.visual_objects.append(VisualObject(". . o o\n. . o o\n. . o o\n. . . .", side=Side.LEFT, size=4))
+        #self.visual_objects.append(VisualObject(". . . .\n. . o o\n. . o o\n. . o o", side=Side.LEFT, size=4))
+        self.visual_objects.append(VisualObject(". . . o\n. . . o\n. . . o\n. . . o", side=Side.LEFT, size=4))
+        self.visual_objects.append(VisualObject(". . o o\n. . o o\n. . o o\n. . o o", side=Side.LEFT, size=4))
+        #self.visual_objects.append(VisualObject("o o o o\no o o o\n. . o o\n. . o o", side=Side.LEFT, size=4))
+        #self.visual_objects.append(VisualObject(". . o o\n. . o o\no o o o\no o o o", side=Side.LEFT, size=4))
+        self.visual_objects.append(VisualObject("o o o o\n. . . o\n. . . o\n. . . o", side=Side.LEFT, size=4))
+        self.visual_objects.append(VisualObject(". . . o\n. . . o\n. . . o\no o o o", side=Side.LEFT, size=4))
+        self.visual_objects.append(VisualObject(". . . o\n. . o o\n. o o o\no o o o", side=Side.LEFT, size=4))
+        self.visual_objects.append(VisualObject("o o o o\n. o o o\n. . o o\n. . . o", side=Side.LEFT, size=4))
+
+        # set middle objects
+        self.visual_objects.append(VisualObject(". o o .\n. o o .\n. . . .\n. . . .", side=Side.MIDDLE, size=4))
+        #self.visual_objects.append(VisualObject(". . . .\n. o o .\n. o o .\n. . . .", side=Side.MIDDLE, size=4))
+        self.visual_objects.append(VisualObject(". . . .\n. . . .\n. o o .\n. o o .", side=Side.MIDDLE, size=4))
+        #self.visual_objects.append(VisualObject(". o o .\n. o o .\n. o o .\n. . . .", side=Side.MIDDLE, size=4))
+        #self.visual_objects.append(VisualObject(". . . .\n. o o .\n. o o .\n. o o .", side=Side.MIDDLE, size=4))
+        self.visual_objects.append(VisualObject("o . . o\no . . o\no . . o\no . . o", side=Side.MIDDLE, size=4))
+        self.visual_objects.append(VisualObject(". o o .\n. o o .\n. o o .\n. o o .", side=Side.MIDDLE, size=4))
+        #self.visual_objects.append(VisualObject("o o o o\no o o o\no . . o\no . . o", side=Side.MIDDLE, size=4))
+        #self.visual_objects.append(VisualObject("o . . o\no . . o\no o o o\no o o o", side=Side.MIDDLE, size=4))
+        self.visual_objects.append(VisualObject("o o o o\no . . o\no . . o\no o o o", side=Side.MIDDLE, size=4))
+        self.visual_objects.append(VisualObject(". o o .\no . . o\no . . o\n. o o .", side=Side.MIDDLE, size=4))
+        self.visual_objects.append(VisualObject("o . . o\n. o o .\n. o o .\no . . o", side=Side.MIDDLE, size=4))
+        self.visual_objects.append(VisualObject(". o o .\no o o o\no o o o\n. o o .", side=Side.MIDDLE, size=4))
+
+        # set right side objects
+        self.visual_objects.append(VisualObject("o o . .\no o . .\n. . . .\n. . . .", side=Side.RIGHT, size=4))
+        #self.visual_objects.append(VisualObject(". . . .\no o . .\no o . .\n. . . .", side=Side.RIGHT, size=4))
+        self.visual_objects.append(VisualObject(". . . .\n. . . .\no o . .\no o . .", side=Side.RIGHT, size=4))
+        #self.visual_objects.append(VisualObject("o o . .\no o . .\no o . .\n. . . .", side=Side.RIGHT, size=4))
+        #self.visual_objects.append(VisualObject(". . . .\no o . .\no o . .\no o . .", side=Side.RIGHT, size=4))
+        self.visual_objects.append(VisualObject("o . . .\no . . .\no . . .\no . . .", side=Side.RIGHT, size=4))
+        self.visual_objects.append(VisualObject("o o . .\no o . .\no o . .\no o . .", side=Side.RIGHT, size=4))
+        #self.visual_objects.append(VisualObject("o o o o\no o o o\no o . .\no o . .", side=Side.RIGHT, size=4))
+        #self.visual_objects.append(VisualObject("o o . .\no o . .\no o o o\no o o o", side=Side.RIGHT, size=4))
+        self.visual_objects.append(VisualObject("o o o o\no . . .\no . . .\no . . .", side=Side.RIGHT, size=4))
+        self.visual_objects.append(VisualObject("o . . .\no . . .\no . . .\no o o o", side=Side.RIGHT, size=4))
+        self.visual_objects.append(VisualObject("o . . .\no o . .\no o o .\no o o o", side=Side.RIGHT, size=4))
+        self.visual_objects.append(VisualObject("o o o o\no o o .\no o . .\no . . .", side=Side.RIGHT, size=4))
+
+    def get_novelty_characteristic(self, neural_network):
+
+        # behavior vector
+        behavior = []
+
+        # test patterns to feed through the network to get behavior
+        test_patterns = [(VisualObject("o o o o\no o o o\no o o o\no o o o", side=Side.LEFT, size=4),
+                          VisualObject("o o o o\no o o o\no o o o\no o o o", side=Side.MIDDLE, size=4),
+                          VisualObject("o o o o\no o o o\no o o o\no o o o", side=Side.RIGHT, size=4)),
+                         (VisualObject(". . . .\n. . . .\no o o o\no o o o", side=Side.LEFT, size=4),
+                          VisualObject(". . . .\no o o o\no o o o\n. . . .", side=Side.MIDDLE, size=4),
+                          VisualObject("o o o o\no o o o\n. . . .\n. . . .", side=Side.RIGHT, size=4)),
+                         (VisualObject("o . . .\n. o . .\n. . o .\n. . . o", side=Side.LEFT, size=4),
+                          VisualObject("o . . o\n. . . .\n. . . .\no . . o", side=Side.MIDDLE, size=4),
+                          VisualObject(". . . o\n. . o .\n. o . .\no . . .", side=Side.RIGHT, size=4)),
+                         (VisualObject(". . . .\n. . . .\n. . . .\n. . . .", side=Side.LEFT, size=4),
+                          VisualObject(". . . .\n. . . .\n. . . .\n. . . .", side=Side.MIDDLE, size=4),
+                          VisualObject(". . . .\n. . . .\n. . . .\n. . . .", side=Side.RIGHT, size=4))]
+
+        # iterate test patterns
+        for test_pattern_left, test_pattern_middle, test_pattern_right in test_patterns:
+
+            test_input = test_pattern_left.get_data() + test_pattern_middle.get_data() + test_pattern_right.get_data()
 
             network_output, _ = neural_network.activate(test_input)
             behavior.extend(network_output)

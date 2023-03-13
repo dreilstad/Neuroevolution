@@ -43,9 +43,9 @@ class ReporterSet(object):
         for r in self.reporters:
             r.complete_extinction()
 
-    def found_solution(self, config, generation, best):
+    def found_solution(self, config, population, best_genome):
         for r in self.reporters:
-            r.found_solution(config, generation, best)
+            r.found_solution(config, population, best_genome)
 
     def species_stagnant(self, sid, species):
         for r in self.reporters:
@@ -73,7 +73,7 @@ class BaseReporter(object):
     def complete_extinction(self):
         pass
 
-    def found_solution(self, config, generation, best):
+    def found_solution(self, config, population, best_genome):
         pass
 
     def species_stagnant(self, sid, species):
@@ -135,9 +135,9 @@ class StdOutReporter(BaseReporter):
         self.num_extinctions += 1
         print('All species extinct.')
 
-    def found_solution(self, config, generation, best):
+    def found_solution(self, config, population, best_genome):
         print('\nBest individual in generation {0} meets fitness threshold - complexity: {1!r}'.format(
-            self.generation, best.size()))
+            self.generation, best_genome.size()))
 
     def species_stagnant(self, sid, species):
         if self.show_species_detail:

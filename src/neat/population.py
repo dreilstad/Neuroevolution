@@ -73,7 +73,7 @@ class Population(object):
             # Call sorting method of NSGA2Reproduction
             # This is the only modification made to the main code, so the best
             # genome is evaluated before tournament, to ensure elitism
-            if callable(getattr(self.reproduction,'sort',None)):
+            if callable(getattr(self.reproduction, 'sort', None)):
                 self.population = self.reproduction.sort(self.population, self.config.pop_size)
 
             # Gather and report statistics.
@@ -90,15 +90,12 @@ class Population(object):
             # Track the best genome ever seen.
             if self.best_genome is None or best.fitness.values[0] > self.best_genome.fitness.values[0]:
                 self.best_genome = best
-            #elif best.fitness.values[0] == self.best_genome.fitness.values[0]:
-            #    if len(best.fitness.values) > 1 and best.fitness.values[1] > self.best_genome.fitness.values[1]:
-            #        self.best_genome = best
 
             if not self.config.no_fitness_termination:
                 # End if the fitness threshold is reached.
                 fv = self.fitness_criterion(g.fitness for g in self.population.values())
                 if fv >= self.config.fitness_threshold:
-                    self.reporters.found_solution(self.config, self.generation, self.best_genome)
+                    self.reporters.found_solution(self.config, self.population, self.best_genome)
                     break
 
             # Create the next generation from the current generation.
@@ -110,6 +107,6 @@ class Population(object):
             self.generation += 1
 
         if self.config.no_fitness_termination:
-            self.reporters.found_solution(self.config, self.generation, self.best_genome)
+            self.reporters.found_solution(self.config, self.population, self.best_genome)
 
         return self.best_genome

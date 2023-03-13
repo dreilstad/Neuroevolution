@@ -83,6 +83,7 @@ class Neuroevolution:
 
         domain_labels = {"retina": "Retina 2x2",
                          "retina-hard": "Retina 3x3",
+                         "retina-hard-extended": "Retina 4x4 Extended",
                          "bipedal": "Bipedal Walker",
                          "tartarus": "Tartarus",
                          "tartarus-deceptive": "Deceptive Tartarus",
