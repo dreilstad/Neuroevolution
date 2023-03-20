@@ -1,3 +1,4 @@
+import numpy as np
 from simulation.simulator import Simulator
 from simulation.environments.retina.retina_environment import RetinaEnvironment, HardRetinaEnvironment, \
                                                               HardRetinaEnvironmentExtended, Side, VisualObject
@@ -9,6 +10,8 @@ class RetinaSimulator(Simulator):
         super().__init__(objectives, domain)
         self.env = RetinaEnvironment()
         self.use_input_nodes_in_mod_div = True
+
+        self.output_value_range = [(-1.0, 1.0)]
 
     def simulate(self, neural_network):
 
@@ -30,7 +33,9 @@ class RetinaSimulator(Simulator):
 
                 # save sequence if using hamming distance
                 if self.hamming is not None:
-                    sequence.extend([*net_input, *net_output])
+                    # normalize output values to the range [0, 1]
+                    norm_net_output = self._normalize_sequence(net_output, self.output_value_range)
+                    sequence.extend([*net_input, *norm_net_output])
 
                 # append activations if using CKA or CCA
                 if self.CKA is not None or self.CCA is not None:
@@ -60,7 +65,7 @@ class RetinaSimulator(Simulator):
 
         # activate
         network_output, activations = neural_network.activate(inputs)
-
+        """
         # get outputs
         left_output = 1 if network_output[0] >= 0.5 else 0
         right_output = 1 if network_output[1] >= 0.5 else 0
@@ -71,6 +76,18 @@ class RetinaSimulator(Simulator):
 
         # left AND right operation, error is 0 if true, error is 1 if false
         error = float(not(left_output == left_target and right_output == right_target))
+        """
+
+        # output classification
+        output = 1 if network_output[0] > 0.0 else 0
+
+        # get target classification
+        left_target = 1 if left.side == Side.LEFT or left.side == Side.BOTH else 0
+        right_target = 1 if right.side == Side.RIGHT or right.side == Side.BOTH else 0
+        target = int(left_target and right_target)
+
+        # get error of classification
+        error = float(not(output == target))
 
         return error, inputs, network_output, activations
 

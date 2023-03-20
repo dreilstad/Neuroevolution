@@ -127,6 +127,17 @@ class Simulator:
         raise NotImplementedError
 
     @staticmethod
+    def _normalize_sequence(sequence, min_max_range, new_min=0.0, new_max=1.0):
+        """Normalizes a sequence with a min-max range to the range [0, 1]"""
+
+        normalized_sequence = np.array([0.0] * len(sequence)).astype(np.float32)
+        for i, (old_min, old_max) in enumerate(min_max_range):
+            norm_value = ((sequence[i] - old_min) / (old_max - old_min)) * (new_max - new_min) + new_min
+            normalized_sequence[i] = norm_value
+
+        return normalized_sequence
+
+    @staticmethod
     def _binarize_sequence(sequence):
         if sequence is None:
             return None

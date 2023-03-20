@@ -146,8 +146,8 @@ class MazeEnvironment:
                     if found_range < min_range:
                         min_range = found_range
 
-            # Update sensor value
-            self.agent.range_finders[i] = min_range
+            # Update sensor value with normalize range
+            self.agent.range_finders[i] = min_range / self.agent.range_finder_range
 
     def update_radars(self):
         """

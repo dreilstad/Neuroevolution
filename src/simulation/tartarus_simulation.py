@@ -21,6 +21,10 @@ class TartarusSimulator(Simulator):
         # 11 input nodes (NW, N, NE, W, E, SW, S, SE, left, right, forward)
         # 3 output nodes (left, right, forward)
 
+        low = np.array([-1.0] * 8 + [0.0] * 3).astype(np.float32)
+        high = np.array([1.1] * 8 + [1.0] * 3).astype(np.float32)
+        self.input_value_range = list(zip(low, high))
+
     def simulate(self, neural_network):
 
         all_activations = None
@@ -48,7 +52,9 @@ class TartarusSimulator(Simulator):
 
                 # save sequence if using hamming distance
                 if self.hamming is not None:
-                    sequence.extend([*state, *output])
+                    # normalize input values to the range [0, 1]
+                    norm_state = self._normalize_sequence(state, self.input_value_range)
+                    sequence.extend([*norm_state, *output])
 
                 # append activations if using CKA or CCA
                 if self.CKA is not None or self.CCA is not None:

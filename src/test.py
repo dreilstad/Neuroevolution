@@ -1,7 +1,39 @@
+import math
 import numpy as np
 import time
-from neat.nn.feed_forward import FeedForwardNetwork, FFNN
+from neat.nn.feed_forward import FeedForwardNetwork
 from util import load_checkpoints
+
+old_min = -1.0
+old_max = 1.0
+
+new_min = 0.0
+new_max = 1.0
+
+old_value = 0.0
+
+old_range = (old_max - old_min)
+new_range = (new_max - new_min)
+
+new_value = (((old_value - old_min) * new_range) / old_range) + new_min
+print(old_value)
+print(new_value)
+new_value = ((old_value - old_min) / (old_max - old_min)) * (new_max - new_min) + new_min
+print(new_value)
+
+low = np.array([-math.pi, -5.0, -5.0, -5.0, -math.pi, -5.0, -math.pi,
+                -5.0, -0.0, -math.pi, -5.0, -math.pi, -5.0, -0.0] + [-1.0] * 10).astype(np.float32)
+high = np.array([math.pi, 5.0, 5.0, 5.0, math.pi, 5.0, math.pi,
+                 5.0, 5.0, math.pi, 5.0, math.pi, 5.0, 5.0] + [1.0] * 10).astype(np.float32)
+
+print(low)
+print(high)
+print(zip(low, high))
+min_max_range = zip(low, high)
+for i, (old_min, old_max) in enumerate(min_max_range):
+    print(f"{i} = [{old_min} - {old_max}]")
+
+"""
 
 checkpoint_path = "/Users/didrik/Documents/Master/Neuroevolution/src/checkpoints/mazerobot-medium/performance-rep_div_cka/000"
 pop = load_checkpoints(checkpoint_path)[0]
@@ -31,7 +63,6 @@ print(f"Runtime (new version): {end - start} s")
 
 
 
-"""
 
 from simulation.environments.retina.retina_environment import HardRetinaEnvironment, VisualObject, Side
 

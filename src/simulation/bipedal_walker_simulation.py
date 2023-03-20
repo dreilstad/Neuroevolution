@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import gymnasium as gym
 from simulation.simulator import Simulator
@@ -11,6 +12,16 @@ class BipedalWalkerSimulator(Simulator):
         self.use_input_nodes_in_mod_div = True
         # 24 input nodes
         # 4 output nodes
+
+        low = np.array([-math.pi, -5.0, -5.0, -5.0, -math.pi, -5.0, -math.pi,
+                        -5.0, -0.0, -math.pi, -5.0, -math.pi, -5.0, -0.0] + [-1.0] * 10).astype(np.float32)
+        high = np.array([math.pi, 5.0, 5.0, 5.0, math.pi, 5.0, math.pi,
+                         5.0, 5.0, math.pi, 5.0, math.pi, 5.0, 5.0] + [1.0] * 10).astype(np.float32)
+        self.input_value_range = list(zip(low, high))
+
+        low = np.array([-1.0] * 4).astype(np.float32)
+        high = np.array([1.0] * 4).astype(np.float32)
+        self.output_value_range = list(zip(low, high))
 
     def simulate(self, neural_network):
 
@@ -41,7 +52,10 @@ class BipedalWalkerSimulator(Simulator):
 
             # save sequence if using hamming distance
             if self.hamming is not None:
-                sequence.extend([*state, *action])
+                # normalize input and output values to the range [0, 1]
+                norm_state = self._normalize_sequence(state, self.input_value_range)
+                norm_action = self._normalize_sequence(action, self.output_value_range)
+                sequence.extend([*norm_state, *norm_action])
 
             # append activations if using CKA or CCA
             if self.CKA is not None or self.CCA is not None:
