@@ -1,5 +1,4 @@
 import os
-import time
 import multiprocessing as mp
 import neat
 import visualize
@@ -28,7 +27,7 @@ class Neuroevolution:
         self.stats = neat.StatisticsReporter()
         self.pop.add_reporter(self.stats)
         self.pop.add_reporter(neat.StdOutReporter(False))
-        self.pop.add_reporter(neat.Checkpointer(generation_interval=5,
+        self.pop.add_reporter(neat.Checkpointer(generation_interval=self.num_generations//200,
                                                 filename_prefix=os.path.join(self.checkpoint_path, "gen_")))
 
     def run(self):
