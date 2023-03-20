@@ -1,5 +1,7 @@
 import math
 import numpy as np
+print("hei")
+"""
 import time
 from neat.nn.feed_forward import FeedForwardNetwork
 from util import load_checkpoints
@@ -33,7 +35,7 @@ min_max_range = zip(low, high)
 for i, (old_min, old_max) in enumerate(min_max_range):
     print(f"{i} = [{old_min} - {old_max}]")
 
-"""
+
 
 checkpoint_path = "/Users/didrik/Documents/Master/Neuroevolution/src/checkpoints/mazerobot-medium/performance-rep_div_cka/000"
 pop = load_checkpoints(checkpoint_path)[0]
