@@ -1,10 +1,8 @@
-import math
-import numpy as np
-print("hei")
-"""
-import time
-from neat.nn.feed_forward import FeedForwardNetwork
+print("START")
 from util import load_checkpoints
+func = load_checkpoints
+print("FINISH")
+"""
 
 old_min = -1.0
 old_max = 1.0

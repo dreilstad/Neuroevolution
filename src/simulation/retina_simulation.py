@@ -1,4 +1,3 @@
-import numpy as np
 from simulation.simulator import Simulator
 from simulation.environments.retina.retina_environment import RetinaEnvironment, HardRetinaEnvironment, \
                                                               HardRetinaEnvironmentExtended, Side, VisualObject
@@ -139,7 +138,6 @@ class HardRetinaExtendedSimulator(RetinaSimulator):
         novelty = self.env.get_novelty_characteristic(neural_network) if self.novelty is not None else None
 
         # [performance, hamming, novelty, CKA, Q]
-        #return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
         return {"performance": task_performance,
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
