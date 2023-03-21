@@ -2,11 +2,14 @@ from neat.graphs import feed_forward_layers
 
 
 class FeedForwardNetwork(object):
-    def __init__(self, inputs, outputs, node_evals):
+    def __init__(self, inputs, outputs, node_evals, connections, nodes):
         self.input_nodes = inputs
         self.output_nodes = outputs
         self.node_evals = node_evals
         self.values = dict((key, 0.0) for key in inputs + outputs)
+
+        self.all_connections = connections
+        self.all_nodes = nodes
 
     def activate(self, inputs):
         if len(self.input_nodes) != len(inputs):
@@ -51,4 +54,5 @@ class FeedForwardNetwork(object):
                 activation_function = config.genome_config.activation_defs.get(ng.activation)
                 node_evals.append((node, activation_function, aggregation_function, ng.bias, ng.response, inputs))
 
-        return FeedForwardNetwork(config.genome_config.input_keys, config.genome_config.output_keys, node_evals)
+        return FeedForwardNetwork(config.genome_config.input_keys, config.genome_config.output_keys, node_evals,
+                                  list(genome.connections), config.genome_config.input_keys + list(genome.nodes))

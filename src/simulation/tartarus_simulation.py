@@ -70,15 +70,19 @@ class TartarusSimulator(Simulator):
 
             task_performance += env.state_evaluation()
 
+        task_performance = task_performance / len(self.configurations)
+
         novelty = self._get_novelty_characteristic(neural_network) if self.novelty is not None else None
 
-        task_performance = task_performance / len(self.configurations)
+        # store Q-score if using modularity objective
+        q_score = self.mod(neural_network.all_nodes, neural_network.all_connections) if self.mod is not None else 0.0
 
         # [performance, hamming, novelty, CKA, Q]
         return {"performance": task_performance,
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
-                "activations": all_activations}
+                "activations": all_activations,
+                "Q": q_score}
 
     def _get_novelty_characteristic(self, neural_network):
 

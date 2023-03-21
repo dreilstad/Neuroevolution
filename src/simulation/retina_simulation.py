@@ -1,6 +1,5 @@
 from simulation.simulator import Simulator
-from simulation.environments.retina.retina_environment import RetinaEnvironment, HardRetinaEnvironment, \
-                                                              HardRetinaEnvironmentExtended, Side, VisualObject
+from simulation.environments.retina.retina_environment import RetinaEnvironment, HardRetinaEnvironment, Side
 
 
 class RetinaSimulator(Simulator):
@@ -46,12 +45,15 @@ class RetinaSimulator(Simulator):
         # store network output of test patterns as genome's novelty characteristics
         novelty = self.env.get_novelty_characteristic(neural_network) if self.novelty is not None else None
 
+        # store Q-score if using modularity objective
+        q_score = self.mod(neural_network.all_nodes, neural_network.all_connections) if self.mod is not None else 0.0
+
         # [performance, hamming, novelty, CKA, Q]
-        #return [task_performance, self._binarize_sequence(sequence), novelty, all_activations]
         return {"performance": task_performance,
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
-                "activations": all_activations}
+                "activations": all_activations,
+                "Q": q_score}
 
     @staticmethod
     def _evaluate(neural_network, left, right):
@@ -97,6 +99,7 @@ class HardRetinaSimulator(RetinaSimulator):
         super().__init__(objectives, domain)
         self.env = HardRetinaEnvironment()
 
+"""
 
 class HardRetinaExtendedSimulator(RetinaSimulator):
 
@@ -145,9 +148,7 @@ class HardRetinaExtendedSimulator(RetinaSimulator):
 
     @staticmethod
     def _evaluate(neural_network, left, middle, right):
-        """
-        The function to evaluate ANN against specific visual objects at lEFT and RIGHT side
-        """
+
 
         # prepare input
         inputs = left.get_data() + middle.get_data() + right.get_data()
@@ -169,3 +170,4 @@ class HardRetinaExtendedSimulator(RetinaSimulator):
         error = float(not(left_output == left_target and middle_output == middle_target and right_output == right_target))
 
         return error, inputs, network_output, activations
+"""

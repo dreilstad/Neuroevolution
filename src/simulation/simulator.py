@@ -21,7 +21,7 @@ class Simulator:
 
         # structural diversity objective
         self.Q = {}
-        self.mod = True if "modularity" in self.objectives else False
+        self.mod = Modularity.calculate_modularity if "modularity" in self.objectives else None
         self.mod_div = ModularityDiversity() if "mod_div" in self.objectives else None
 
         # behavioral diversity objective
@@ -91,9 +91,11 @@ class Simulator:
 
             genome.fitness.add(*fitnesses)
 
+        self.performance = {}
         self.Q = {}
 
     def assign_output(self, genome_id, simulation_output, generation):
+
         if self.performance is not None:
             self.performance[genome_id] = simulation_output["performance"]
 
@@ -104,8 +106,7 @@ class Simulator:
             self.novelty.add(genome_id, simulation_output["novelty"])
 
         if self.mod:
-            self.Q[genome_id] = Modularity.calculate_modularity(simulation_output["nodes"],
-                                                                simulation_output["edges"])
+            self.Q[genome_id] = simulation_output["Q"]
 
         if self.mod_div is not None:
             self.mod_div.add(genome_id, simulation_output["nodes"], simulation_output["edges"],

@@ -48,6 +48,9 @@ class MazeSimulator(Simulator):
 
         novelty = self._get_novelty_characteristic(None) if self.novelty is not None else None
 
+        # store Q-score if using modularity objective
+        q_score = self.mod(neural_network.all_nodes, neural_network.all_connections) if self.mod is not None else 0.0
+
         # Calculate the fitness score based on distance from exit
         task_performance = 1.0
         if not exit_found:
@@ -66,6 +69,7 @@ class MazeSimulator(Simulator):
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
                 "activations": all_activations,
+                "Q": q_score,
                 "agent_record": record}
 
     def _get_novelty_characteristic(self, neural_network):

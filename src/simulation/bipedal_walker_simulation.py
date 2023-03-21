@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import gymnasium as gym
 from simulation.simulator import Simulator
@@ -13,10 +12,10 @@ class BipedalWalkerSimulator(Simulator):
         # 24 input nodes
         # 4 output nodes
 
-        low = np.array([-math.pi, -5.0, -5.0, -5.0, -math.pi, -5.0, -math.pi,
-                        -5.0, -0.0, -math.pi, -5.0, -math.pi, -5.0, -0.0] + [-1.0] * 10).astype(np.float32)
-        high = np.array([math.pi, 5.0, 5.0, 5.0, math.pi, 5.0, math.pi,
-                         5.0, 5.0, math.pi, 5.0, math.pi, 5.0, 5.0] + [1.0] * 10).astype(np.float32)
+        low = np.array([-np.pi, -5.0, -5.0, -5.0, -np.pi, -5.0, -np.pi,
+                        -5.0, -0.0, -np.pi, -5.0, -np.pi, -5.0, -0.0] + [-1.0] * 10).astype(np.float32)
+        high = np.array([np.pi, 5.0, 5.0, 5.0, np.pi, 5.0, np.pi,
+                         5.0, 5.0, np.pi, 5.0, np.pi, 5.0, 5.0] + [1.0] * 10).astype(np.float32)
         self.input_value_range = list(zip(low, high))
 
         low = np.array([-1.0] * 4).astype(np.float32)
@@ -63,11 +62,15 @@ class BipedalWalkerSimulator(Simulator):
 
         novelty = self._get_novelty_characteristic(neural_network) if self.novelty is not None else None
 
+        # store Q-score if using modularity objective
+        q_score = self.mod(neural_network.all_nodes, neural_network.all_connections) if self.mod is not None else 0.0
+
         # [performance, hamming, novelty, CKA, Q]
         return {"performance": task_performance,
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
-                "activations": all_activations}
+                "activations": all_activations,
+                "Q": q_score}
 
     def _get_novelty_characteristic(self, neural_network):
 
