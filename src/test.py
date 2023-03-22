@@ -1,8 +1,20 @@
+import time
+import numpy as np
+
+a = {}
+for j in range(10000000):
+    start = time.time()
+    a[j] = np.random.randint(10)
+    end = time.time()
+    print(f"{end - start} s")
+
+print(len(a))
+
+"""
 print("START")
 from util import load_checkpoints
 func = load_checkpoints
 print("FINISH")
-"""
 
 old_min = -1.0
 old_max = 1.0

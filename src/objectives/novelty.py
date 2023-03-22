@@ -17,8 +17,8 @@ class Novelty:
                               "bipedal": 0.7,
                               "mazerobot-medium": 10.0,
                               "mazerobot-hard": 10.0,
-                              "tartarus": 5.0,
-                              "tartarus-deceptive": 5.0}
+                              "tartarus": 0.5,
+                              "tartarus-deceptive": 0.5}
         self.threshold = initial_thresholds[domain]
 
         self.num_added_to_archive = 0

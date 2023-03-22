@@ -98,7 +98,7 @@ def _get_random_agent_position_in_config(config, N):
 
     boxes = []
     for i in range(1, N-1):
-        for j in range(i, N-1):
+        for j in range(1, N-1):
             if config[i][j] == 1:
                 boxes.append((i, j))
 
