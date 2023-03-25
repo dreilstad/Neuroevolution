@@ -21,8 +21,14 @@ digraph svg {
 	}
 	{
 		rank=same
-		57 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		24863 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		728 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		157528 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		212 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+	}
+	{
+		rank=same
+		3189 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		286 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
@@ -34,16 +40,18 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-2 -> 57 [arrowhead=none color=black dir=forward style=solid]
-	-4 -> 57 [arrowhead=none color=black dir=forward style=solid]
-	-3 -> 24863 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 24863 [arrowhead=none color=black dir=forward style=solid]
-	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-4 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-2 -> 728 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 157528 [arrowhead=none color=black dir=forward style=solid]
+	-1 -> 212 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 212 [arrowhead=none color=black dir=forward style=solid]
+	212 -> 3189 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 286 [arrowhead=none color=black dir=forward style=solid]
+	157528 -> 286 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	57 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	24863 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	286 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	728 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	3189 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }

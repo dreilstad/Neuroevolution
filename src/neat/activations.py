@@ -18,11 +18,6 @@ def tanh_activation(z):
     return math.tanh(z)
 
 
-def step_tanh_activation(z):
-    z = max(-60.0, min(60.0, 20.0 * z))
-    return math.tanh(z)
-
-
 def sin_activation(z):
     z = max(-60.0, min(60.0, 5.0 * z))
     return math.sin(z)
@@ -125,7 +120,6 @@ class ActivationFunctionSet(object):
         self.functions = {}
         self.add('sigmoid', sigmoid_activation)
         self.add('tanh', tanh_activation)
-        self.add('step_tanh', step_tanh_activation)
         self.add('sin', sin_activation)
         self.add('gauss', gauss_activation)
         self.add('relu', relu_activation)
