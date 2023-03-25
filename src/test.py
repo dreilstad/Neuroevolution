@@ -1,91 +1,83 @@
-import time
-import numpy as np
+import random
 
-a = {}
-for j in range(10000000):
-    start = time.time()
-    a[j] = np.random.randint(10)
-    end = time.time()
-    print(f"{end - start} s")
-
-print(len(a))
-
-"""
-print("START")
-from util import load_checkpoints
-func = load_checkpoints
-print("FINISH")
-
-old_min = -1.0
-old_max = 1.0
-
-new_min = 0.0
-new_max = 1.0
-
-old_value = 0.0
-
-old_range = (old_max - old_min)
-new_range = (new_max - new_min)
-
-new_value = (((old_value - old_min) * new_range) / old_range) + new_min
-print(old_value)
-print(new_value)
-new_value = ((old_value - old_min) / (old_max - old_min)) * (new_max - new_min) + new_min
-print(new_value)
-
-low = np.array([-math.pi, -5.0, -5.0, -5.0, -math.pi, -5.0, -math.pi,
-                -5.0, -0.0, -math.pi, -5.0, -math.pi, -5.0, -0.0] + [-1.0] * 10).astype(np.float32)
-high = np.array([math.pi, 5.0, 5.0, 5.0, math.pi, 5.0, math.pi,
-                 5.0, 5.0, math.pi, 5.0, math.pi, 5.0, 5.0] + [1.0] * 10).astype(np.float32)
-
-print(low)
-print(high)
-print(zip(low, high))
-min_max_range = zip(low, high)
-for i, (old_min, old_max) in enumerate(min_max_range):
-    print(f"{i} = [{old_min} - {old_max}]")
+from itertools import repeat
 
 
+def mutPolynomialBounded(individual, eta, low, up, indpb):
+    """Polynomial mutation as implemented in original NSGA-II algorithm in
+    C by Deb.
+    :param individual: :term:`Sequence <sequence>` individual to be mutated.
+    :param eta: Crowding degree of the mutation. A high eta will produce
+                a mutant resembling its parent, while a small eta will
+                produce a solution much more different.
+    :param low: A value or a :term:`python:sequence` of values that
+                is the lower bound of the search space.
+    :param up: A value or a :term:`python:sequence` of values that
+               is the upper bound of the search space.
+    :returns: A tuple of one individual.
+    """
+    size = len(individual)
+    if not isinstance(low, Sequence):
+        low = repeat(low, size)
+    elif len(low) < size:
+        raise IndexError("low must be at least the size of individual: %d < %d" % (len(low), size))
+    if not isinstance(up, Sequence):
+        up = repeat(up, size)
+    elif len(up) < size:
+        raise IndexError("up must be at least the size of individual: %d < %d" % (len(up), size))
 
-checkpoint_path = "/Users/didrik/Documents/Master/Neuroevolution/src/checkpoints/mazerobot-medium/performance-rep_div_cka/000"
-pop = load_checkpoints(checkpoint_path)[0]
+    for i, xl, xu in zip(range(size), low, up):
+        if random.random() <= indpb:
+            x = individual[i]
+            delta_1 = (x - xl) / (xu - xl)
+            delta_2 = (xu - x) / (xu - xl)
+            rand = random.random()
+            mut_pow = 1.0 / (eta + 1.)
 
-network = FeedForwardNetwork.create(pop.best_genome, pop.config)
-ffnn = FFNN(pop.best_genome, pop.config)
+            if rand < 0.5:
+                xy = 1.0 - delta_1
+                val = 2.0 * rand + (1.0 - 2.0 * rand) * xy ** (eta + 1)
+                delta_q = val ** mut_pow - 1.0
+            else:
+                xy = 1.0 - delta_2
+                val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * xy ** (eta + 1)
+                delta_q = 1.0 - val ** mut_pow
 
-inputs = []
-for i in range(100000):
-    inputs.append(np.random.rand(10))
+            x = x + delta_q * (xu - xl)
+            x = min(max(x, xl), xu)
+            individual[i] = x
+    return individual,
 
-start = time.time()
-for in_values in inputs:
-    old_output, old_act = network.activate(in_values)
-end = time.time()
+def execute(self, solution: FloatSolution) -> FloatSolution:
+    for i in range(solution.number_of_variables):
+        rand = random.random()
 
-print(f"Runtime (old version): {end - start} s")
+        if rand <= self.probability:
+            y = solution.variables[i]
+            yl, yu = solution.lower_bound[i], solution.upper_bound[i]
 
-start = time.time()
-for in_values in inputs:
-    new_output, new_act = ffnn.activate(in_values)
-end = time.time()
-print(f"Runtime (new version): {end - start} s")
+            if yl == yu:
+                y = yl
+            else:
+                delta1 = (y - yl) / (yu - yl)
+                delta2 = (yu - y) / (yu - yl)
+                rnd = random.random()
+                mut_pow = 1.0 / (self.distribution_index + 1.0)
+                if rnd <= 0.5:
+                    xy = 1.0 - delta1
+                    val = 2.0 * rnd + (1.0 - 2.0 * rnd) * (pow(xy, self.distribution_index + 1.0))
+                    deltaq = pow(val, mut_pow) - 1.0
+                else:
+                    xy = 1.0 - delta2
+                    val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * (pow(xy, self.distribution_index + 1.0))
+                    deltaq = 1.0 - pow(val, mut_pow)
 
+                y += deltaq * (yu - yl)
+                if y < solution.lower_bound[i]:
+                    y = solution.lower_bound[i]
+                if y > solution.upper_bound[i]:
+                    y = solution.upper_bound[i]
 
+            solution.variables[i] = y
 
-
-
-
-
-from simulation.environments.retina.retina_environment import HardRetinaEnvironment, VisualObject, Side
-
-env = HardRetinaEnvironment()
-#print(env)
-
-print(env.visual_objects[14])
-print(env.visual_objects[15])
-print()
-
-print(env.visual_objects[32])
-print(env.visual_objects[33])
-print()
-"""
+    return solution

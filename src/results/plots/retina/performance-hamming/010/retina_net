@@ -21,25 +21,13 @@ digraph svg {
 	}
 	{
 		rank=same
-		192 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		336 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		17839 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		1701 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		766 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		2551 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
-		797 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
-		18406 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
-		7370 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
-		1752 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		1367 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
@@ -51,24 +39,17 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-5 -> 192 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 192 [arrowhead=none color=black dir=forward style=solid]
-	-3 -> 192 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 192 [arrowhead=none color=black dir=forward style=solid]
-	-4 -> 336 [arrowhead=none color=black dir=forward style=solid]
-	-2 -> 17839 [arrowhead=none color=black dir=forward style=solid]
-	-7 -> 797 [arrowhead=none color=black dir=forward style=solid]
-	17839 -> 797 [arrowhead=none color=black dir=forward style=solid]
-	797 -> 18406 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 7370 [arrowhead=none color=black dir=forward style=solid]
-	18406 -> 7370 [arrowhead=none color=black dir=forward style=solid]
-	7370 -> 1752 [arrowhead=none color=black dir=forward style=solid]
+	-2 -> 1701 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 766 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 2551 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 2551 [arrowhead=none color=black dir=forward style=solid]
+	766 -> 1367 [arrowhead=none color=black dir=forward style=solid]
 	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	192 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	336 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	1752 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	18406 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	1367 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	1701 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	2551 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }

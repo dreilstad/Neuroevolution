@@ -21,16 +21,6 @@ digraph svg {
 	}
 	{
 		rank=same
-		6497 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		70134 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		1158 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
-		33 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
 	}
 	-8 -> -7 [arrowhead=none color=white style=invisible]
 	-7 -> -6 [arrowhead=none color=white style=invisible]
@@ -39,21 +29,12 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-4 -> 6497 [arrowhead=none color=black dir=forward style=solid]
-	-2 -> 70134 [arrowhead=none color=black dir=forward style=solid]
-	-5 -> 1158 [arrowhead=none color=black dir=forward style=solid]
-	-3 -> 1158 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 1158 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 33 [arrowhead=none color=black dir=forward style=solid]
-	-3 -> 33 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 33 [arrowhead=none color=black dir=forward style=solid]
-	70134 -> 33 [arrowhead=none color=black dir=forward style=solid]
 	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-2 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	1158 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	33 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	6497 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }

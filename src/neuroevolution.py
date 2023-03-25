@@ -38,7 +38,7 @@ class Neuroevolution:
         g = self.pop.population[1]
         net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
         visualize.draw_net(net, f"init_net")
-        for i in range(21):
+        for i in range(101):
             g.mutate(self.neat_config.genome_config)
             if i % 10 == 0:
                 net = neat.nn.FeedForwardNetwork.create(g, self.neat_config)
