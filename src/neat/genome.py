@@ -275,40 +275,23 @@ class DefaultGenome(object):
     def mutate(self, config):
         """ Mutates this genome. """
 
-        if config.single_structural_mutation:
-            div = max(1, (config.node_add_prob + config.node_delete_prob +
-                          config.conn_add_prob + config.conn_delete_prob))
-            r = random()
-            if r < (config.node_add_prob/div):
-                self.mutate_add_node(config)
-            elif r < ((config.node_add_prob + config.node_delete_prob)/div):
-                self.mutate_delete_node(config)
-            elif r < ((config.node_add_prob + config.node_delete_prob +
-                       config.conn_add_prob)/div):
-                self.mutate_add_connection(config)
-            elif r < ((config.node_add_prob + config.node_delete_prob +
-                       config.conn_add_prob + config.conn_delete_prob)/div):
-                self.mutate_delete_connection(config)
-        else:
-            if random() < config.node_add_prob:
-                self.mutate_add_node(config)
+        if random() < config.node_add_prob:
+            self.mutate_add_node(config)
 
-            if random() < config.node_delete_prob:
-                self.mutate_delete_node(config)
+        if random() < config.node_delete_prob:
+            self.mutate_delete_node(config)
 
-            if random() < config.conn_add_prob:
-                self.mutate_add_connection(config)
+        if random() < config.conn_add_prob:
+            self.mutate_add_connection(config)
 
-            if random() < config.conn_delete_prob:
-                self.mutate_delete_connection(config)
+        if random() < config.conn_delete_prob:
+            self.mutate_delete_connection(config)
 
         # Mutate connection genes.
-        for cg in self.connections.values():
-            cg.mutate(config)
+        self.mutate_connection_weights(config)
 
         # Mutate node genes (bias, response, etc.).
-        for ng in self.nodes.values():
-            ng.mutate(config)
+        self.mutate_node_biases(config)
 
     def mutate_add_node(self, config):
         if not self.connections:
@@ -368,6 +351,71 @@ class DefaultGenome(object):
 
         cg = self.create_connection(config, from_node, to_node)
         self.connections[cg.key] = cg
+
+    def mutate_connection_weights(self, config, eta=9):
+
+        for i, (connection_id, connection) in enumerate(self.connections.items()):
+            if random() <= config.weight_mutate_rate:
+                value = connection.weight
+                lower_bound = config.weight_min_value
+                upper_bound = config.weight_max_value
+
+                delta1 = (value - lower_bound) / (upper_bound - lower_bound)
+                delta2 = (upper_bound - value) / (upper_bound - lower_bound)
+
+                rnd = random()
+                mut_pow = 1.0 / (eta + 1.0)
+                if rnd <= 0.5:
+                    xy = 1.0 - delta1
+                    val = 2.0 * rnd + (1.0 - 2.0 * rnd) * (pow(xy, eta + 1.0))
+                    delta_q = pow(val, mut_pow) - 1.0
+                else:
+                    xy = 1.0 - delta2
+                    val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * (pow(xy, eta + 1.0))
+                    delta_q = 1.0 - pow(val, mut_pow)
+
+                value += delta_q * (upper_bound - lower_bound)
+                if value < lower_bound:
+                    value = lower_bound
+                if value > upper_bound:
+                    value = upper_bound
+
+                #print(f"Connection {connection_id} - weight before mutation: {self.connections[connection_id].weight}")
+                self.connections[connection_id].weight = value
+                #print(f"Connection {connection_id} - weight after mutation: {self.connections[connection_id].weight}\n")
+
+    def mutate_node_biases(self, config, eta=9):
+
+        for i, (node_id, node) in enumerate(self.nodes.items()):
+            if random() <= config.bias_mutate_rate:
+                value = node.bias
+                lower_bound = config.bias_min_value
+                upper_bound = config.bias_max_value
+
+                delta1 = (value - lower_bound) / (upper_bound - lower_bound)
+                delta2 = (upper_bound - value) / (upper_bound - lower_bound)
+
+                rnd = random()
+                mut_pow = 1.0 / (eta + 1.0)
+                if rnd <= 0.5:
+                    xy = 1.0 - delta1
+                    val = 2.0 * rnd + (1.0 - 2.0 * rnd) * (pow(xy, eta + 1.0))
+                    delta_q = pow(val, mut_pow) - 1.0
+                else:
+                    xy = 1.0 - delta2
+                    val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * (pow(xy, eta + 1.0))
+                    delta_q = 1.0 - pow(val, mut_pow)
+
+                value += delta_q * (upper_bound - lower_bound)
+                if value < lower_bound:
+                    value = lower_bound
+                if value > upper_bound:
+                    value = upper_bound
+
+                #print(f"Node {node_id} - bias before mutation: {self.nodes[node_id].bias}")
+                self.nodes[node_id].bias = value
+                #print(f"Node {node_id} - bias after mutation: {self.nodes[node_id].bias}\n")
+
 
     def mutate_delete_node(self, config):
 

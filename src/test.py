@@ -1,14 +1,8 @@
-import time
-import numpy as np
+from simulation.environments.tartarus.tartarus_environment import TartarusEnvironment
 
-a = {}
-for j in range(10000000):
-    start = time.time()
-    a[j] = np.random.randint(10)
-    end = time.time()
-    print(f"{end - start} s")
 
-print(len(a))
+
+
 
 """
 print("START")

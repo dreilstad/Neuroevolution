@@ -10,7 +10,7 @@ def main(domain, simulator, objectives, config_file, num_generations, show, para
     if parallel:
         evaluator = neat.MultiObjectiveParallelEvaluator
 
-    num_experiments = 10
+    num_experiments = 15
     for _ in range(num_experiments):
         ne = Neuroevolution(domain, simulator, objectives, config_file,
                             num_generations, show, evaluator=evaluator)
@@ -63,8 +63,7 @@ if __name__=="__main__":
     print(f"Show figures: {args.show}")
     simulator, config, objectives, num_generations = validate_input(args)
 
-    main(args.domain, simulator, objectives, config, num_generations, args.show, args.parallel)
-    """
+    #main(args.domain, simulator, objectives, config, num_generations, args.show, args.parallel)
     from simulation.environments.tartarus.tartarus_environment import TartarusEnvironment
     from simulation.environments.tartarus.minigrid.manual_control import ManualControl
     from simulation.environments.tartarus.tartarus_util import generate_configurations
@@ -72,8 +71,11 @@ if __name__=="__main__":
 
     N_size = 6
     K_boxes = 6
-    configs = generate_configurations(N_size, K_boxes)
-    env = TartarusEnvironment(configs[np.random.randint(len(configs))])
+    configs, test_config, pos, direction = generate_configurations(N_size, K_boxes, sample=10)
+    #config = configs[np.random.randint(len(configs))]
+    print(test_config)
+
+    env = TartarusEnvironment(test_config)
     env.reset()
     env.agent_view_size = 3
 
@@ -81,13 +83,17 @@ if __name__=="__main__":
     print(env.encode_tartarus_state_with_walls())
     print(f"performance score: {env.state_evaluation()}")
 
+    #print(env.get_initial_block_positions())
     manual_control = ManualControl(env=env, agent_view=False)
     manual_control.start()
 
     print(f"performance score: {env.state_evaluation()}")
     print(env.encode_tartarus_state())
     print(env.encode_tartarus_state_with_walls())
-    
+
+    #print(env.get_initial_block_positions())
+
+    """
 
     from simulation.environments.maze.agent import AgentRecordStore
     from simulation.environments.maze.maze_environment import read_environment
