@@ -48,7 +48,7 @@ class Neuroevolution:
         """
 
         if self.evaluator is not None:
-            evaluator = self.evaluator(40, self.simulator)
+            evaluator = self.evaluator(50, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate_genomes, n=self.num_generations)
         else:
             best_genome = self.pop.run(self.simulator.evaluate_genomes, n=self.num_generations)
