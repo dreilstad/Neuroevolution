@@ -66,18 +66,6 @@ class RetinaSimulator(Simulator):
 
         # activate
         network_output, activations = neural_network.activate(inputs)
-        """
-        # get outputs
-        left_output = 1 if network_output[0] >= 0.5 else 0
-        right_output = 1 if network_output[1] >= 0.5 else 0
-
-        # set ground truth
-        left_target = 1 if left.side == Side.LEFT or left.side == Side.BOTH else 0
-        right_target = 1 if right.side == Side.RIGHT or right.side == Side.BOTH else 0
-
-        # left AND right operation, error is 0 if true, error is 1 if false
-        error = float(not(left_output == left_target and right_output == right_target))
-        """
 
         # output classification
         output = 1 if network_output[0] > 0.0 else 0
@@ -140,15 +128,18 @@ class HardRetinaExtendedSimulator(RetinaSimulator):
         # store network output of test patterns as genome's novelty characteristics
         novelty = self.env.get_novelty_characteristic(neural_network) if self.novelty is not None else None
 
+        # store Q-score if using modularity objective
+        q_score = self.mod(neural_network.all_nodes, neural_network.all_connections) if self.mod is not None else 0.0
+
         # [performance, hamming, novelty, CKA, Q]
         return {"performance": task_performance,
                 "hamming": self._binarize_sequence(sequence),
                 "novelty": novelty,
-                "activations": all_activations}
+                "activations": all_activations,
+                "Q": q_score}
 
     @staticmethod
     def _evaluate(neural_network, left, middle, right):
-
 
         # prepare input
         inputs = left.get_data() + middle.get_data() + right.get_data()
@@ -156,18 +147,17 @@ class HardRetinaExtendedSimulator(RetinaSimulator):
         # activate
         network_output, activations = neural_network.activate(inputs)
 
-        # get outputs
-        left_output = 1 if network_output[0] >= 0.5 else 0
-        middle_output = 1 if network_output[1] >= 0.5 else 0
-        right_output = 1 if network_output[2] >= 0.5 else 0
+        # output classification
+        output = 1 if network_output[0] > 0.0 else 0
 
-        # set ground truth
-        left_target = 1 if left.side == Side.LEFT else 0
-        middle_target = 1 if middle.side == Side.MIDDLE else 0
-        right_target = 1 if right.side == Side.RIGHT else 0
+        # get target classification
+        left_target = 1 if left.side == Side.LEFT or left.side == Side.BOTH else 0
+        middle_target = 1 if middle.side == Side.MIDDLE or middle.side == Side.BOTH else 0
+        right_target = 1 if right.side == Side.RIGHT or right.side == Side.BOTH else 0
+        target = int(left_target and middle_target and right_target)
 
-        # left AND right operation, error is 0 if true, error is 1 if false
-        error = float(not(left_output == left_target and middle_output == middle_target and right_output == right_target))
+        # get error of classification
+        error = float(not(output == target))
 
         return error, inputs, network_output, activations
 """

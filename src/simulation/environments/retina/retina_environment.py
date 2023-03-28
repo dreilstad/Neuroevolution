@@ -178,7 +178,7 @@ class HardRetinaEnvironment(RetinaEnvironment):
 
         return test_patterns
 
-
+"""
 class HardRetinaEnvironmentExtended(RetinaEnvironment):
 
     def __init__(self):
@@ -248,3 +248,4 @@ class HardRetinaEnvironmentExtended(RetinaEnvironment):
             behavior.extend(network_output)
 
         return behavior
+"""

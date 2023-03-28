@@ -333,16 +333,12 @@ def _draw_maze_(maze_env, ax):
 
     # draw start point
     start_circle = plt.Circle((maze_env.agent.location.x, maze_env.agent.location.y),
-                              radius=2.5, facecolor="green", edgecolor='w')
+                              radius=4.0, facecolor="#1071e5", edgecolor='w')
     ax.add_patch(start_circle)
 
     # draw exit point
-    exit_circle = plt.Circle((maze_env.exit_point.x, maze_env.exit_point.y),
-                             radius=2.5, facecolor=(1.0, 0.2, 0.0), edgecolor='w')
-
-    ax.add_patch(exit_circle)
-    #ax.scatter([maze_env.exit_point.x], [maze_env.exit_point.y], s=320, marker="*",
-    #           facecolor=(1.0, 0.2, 0.0), edgecolor='w', zorder=3)
+    ax.scatter([maze_env.exit_point.x], [maze_env.exit_point.y], s=800, marker="*",
+               facecolor="#e81313")
 
 
 if __name__ == "__main__":

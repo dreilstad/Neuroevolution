@@ -48,7 +48,7 @@ class Neuroevolution:
         """
 
         if self.evaluator is not None:
-            evaluator = self.evaluator(50, self.simulator)
+            evaluator = self.evaluator(20, self.simulator)
             best_genome = self.pop.run(evaluator.evaluate_genomes, n=self.num_generations)
         else:
             best_genome = self.pop.run(self.simulator.evaluate_genomes, n=self.num_generations)
@@ -74,15 +74,14 @@ class Neuroevolution:
     def visualize_stats(self, winner_genome):
         labels = {"performance": "Task Performance",
                   "hamming": "Hamming Distance",
-                  "beh_div": "Behavioural Diversity (ad hoc)",
+                  "beh_div": "Behavioral Diversity (ad hoc)",
                   "modularity": "Modularity (Q-score)",
                   "mod_div": "Modularity Diversity",
                   "rep_div_cka": "Representational Diversity (Linear CKA)",
                   "rep_div_cca": "Representational Diversity (CCA)"}
 
-        domain_labels = {"retina": "Retina 2x2",
-                         "retina-hard": "Retina 3x3",
-                         "retina-hard-extended": "Retina 4x4 Extended",
+        domain_labels = {"retina": "Retina (2x2)",
+                         "retina-hard": "HardRetina (3x3)",
                          "bipedal": "Bipedal Walker",
                          "tartarus": "Tartarus",
                          "tartarus-deceptive": "Deceptive Tartarus",

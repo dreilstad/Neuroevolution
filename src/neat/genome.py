@@ -275,7 +275,7 @@ class DefaultGenome(object):
     def mutate(self, config):
         """ Mutates this genome. """
 
-        if random() < config.node_add_prob:
+        if random() < config.node_add_prob and len(self.nodes) < 50:
             self.mutate_add_node(config)
 
         if random() < config.node_delete_prob:
@@ -380,9 +380,7 @@ class DefaultGenome(object):
                 if value > upper_bound:
                     value = upper_bound
 
-                #print(f"Connection {connection_id} - weight before mutation: {self.connections[connection_id].weight}")
                 self.connections[connection_id].weight = value
-                #print(f"Connection {connection_id} - weight after mutation: {self.connections[connection_id].weight}\n")
 
     def mutate_node_biases(self, config, eta=9):
 
@@ -412,9 +410,7 @@ class DefaultGenome(object):
                 if value > upper_bound:
                     value = upper_bound
 
-                #print(f"Node {node_id} - bias before mutation: {self.nodes[node_id].bias}")
                 self.nodes[node_id].bias = value
-                #print(f"Node {node_id} - bias after mutation: {self.nodes[node_id].bias}\n")
 
 
     def mutate_delete_node(self, config):
