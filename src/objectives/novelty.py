@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.distance import cityblock
 from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
 
 
@@ -21,6 +22,16 @@ class Novelty:
                               "tartarus-deceptive": 0.5}
         self.threshold = initial_thresholds[domain]
 
+        distances = {"retina": self.euclidean_distance,
+                     "retina-hard": self.euclidean_distance,
+                     "bipedal": self.euclidean_distance,
+                     "mazerobot-medium": self.euclidean_distance,
+                     "mazerobot-hard": self.euclidean_distance,
+                     "tartarus": self.manhattan_distance,
+                     "tartarus-deceptive": self.manhattan_distance}
+        self.distance = distances[domain]
+
+
         self.num_added_to_archive = 0
         self.evals_since_archive_addition = 0
 
@@ -34,8 +45,8 @@ class Novelty:
 
         # calculate distances against archive behaviors
         for genome_id, behavior in self.behaviors.items():
-            distances_archive = self.euclidean_distance_to_archive(behavior)
-            distances_pop = self.euclidean_distance_to_current_pop(behavior)
+            distances_archive = self.distance_to_archive(behavior)
+            distances_pop = self.distance_to_current_pop(behavior)
             distances = np.concatenate((distances_archive, distances_pop))
 
             # sort list of distances to get the k nearest neighbors
@@ -80,7 +91,7 @@ class Novelty:
             return default_novelty, None
 
         # get distance to archive behaviors
-        distances = self.euclidean_distance_to_archive(behavior)
+        distances = self.distance_to_archive(behavior)
 
         # sort list of distances ot get the k nearest neighbors
         k = min(len(self.archive), self.k)
@@ -109,28 +120,21 @@ class Novelty:
 
         history.dump(filename)
 
-    def euclidean_distance_to_archive(self, behavior):
+    def distance_to_archive(self, behavior):
         distances = np.zeros(len(self.archive))
         for i, (other_behavior, _) in enumerate(self.archive):
-            distances[i] = self.euclidean_distance(behavior, other_behavior)
+            distances[i] = self.distance(behavior, other_behavior)
 
         distances = np.power(distances, 0.5)
         return distances
 
-    def euclidean_distance_to_current_pop(self, behavior):
+    def distance_to_current_pop(self, behavior):
         distances = np.zeros(len(self.behaviors))
         for i, (_, other_behavior) in enumerate(self.behaviors.items()):
-            distances[i] = self.euclidean_distance(behavior, other_behavior)
+            distances[i] = self.distance(behavior, other_behavior)
 
         distances = np.power(distances, 0.5)
         return distances
-
-    @staticmethod
-    def euclidean_distance(vec, other):
-        distance = 0
-        for i in range(len(vec)):
-            distance += pow(vec[i] - other[i], 2.0)
-        return distance
 
     def _update_archive_settings(self):
         # threshold is lowered if more than 10 generations occured since last archive addition,
@@ -145,3 +149,24 @@ class Novelty:
         # reset counter
         self.num_added_to_archive = 0
 
+    @staticmethod
+    def euclidean_distance(vec, other):
+        distance = 0.0
+        for i in range(len(vec)):
+            distance += pow(vec[i] - other[i], 2.0)
+        return distance
+
+    @staticmethod
+    def manhattan_distance(vec, other):
+        # beta = [[(x0,y0), ... , (x6,y6)],
+        #         [(x0,y0), ... , (x6,y6)],
+        #                   ...
+        #                   ...          ]
+
+        k = float(len(vec))
+        distance = 0.0
+        for beta_vec, other_beta_vec in zip(vec, other):
+            distance += cityblock(beta_vec, other_beta_vec)
+
+        distance = distance / k
+        return distance

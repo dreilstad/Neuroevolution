@@ -275,7 +275,7 @@ class DefaultGenome(object):
     def mutate(self, config):
         """ Mutates this genome. """
 
-        if random() < config.node_add_prob and len(self.nodes) < 50:
+        if random() < config.node_add_prob and len(self.nodes) < 30:
             self.mutate_add_node(config)
 
         if random() < config.node_delete_prob:

@@ -22,7 +22,6 @@ llvmlite==0.39.1
 matplotlib==3.6.0
 Minigrid==2.1.0
 networkx==2.8.8
-numba==0.56.3
 numpy==1.23.4
 opencv-python==4.6.0.66
 packaging==21.3

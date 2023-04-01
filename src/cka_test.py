@@ -2,7 +2,6 @@ import math
 import time
 import numpy as np
 import multiprocessing as mp
-from numba.typed import List
 from itertools import combinations
 
 
