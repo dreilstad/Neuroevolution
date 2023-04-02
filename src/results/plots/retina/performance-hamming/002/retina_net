@@ -21,12 +21,11 @@ digraph svg {
 	}
 	{
 		rank=same
-		760 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		792 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		1669 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
-		56 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		594 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
@@ -38,15 +37,17 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-2 -> 760 [arrowhead=none color=black dir=forward style=solid]
-	-4 -> 792 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 56 [arrowhead=none color=black dir=forward style=solid]
-	760 -> 56 [arrowhead=none color=black dir=forward style=solid]
-	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 1669 [arrowhead=none color=black dir=forward style=solid]
+	-1 -> 594 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 594 [arrowhead=none color=black dir=forward style=solid]
+	1669 -> 594 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 594 [arrowhead=none color=black dir=forward style=solid]
+	-2 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	56 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	792 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	594 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	1669 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }

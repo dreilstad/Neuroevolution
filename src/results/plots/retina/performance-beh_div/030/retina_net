@@ -21,13 +21,8 @@ digraph svg {
 	}
 	{
 		rank=same
-		2336 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		1661 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		125 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
-		183 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		16 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		356 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
@@ -39,18 +34,15 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-7 -> 2336 [arrowhead=none color=black dir=forward style=solid]
-	-3 -> 1661 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 125 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 183 [arrowhead=none color=black dir=forward style=solid]
-	1661 -> 183 [arrowhead=none color=black dir=forward style=solid]
-	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-1 -> 16 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 16 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 356 [arrowhead=none color=black dir=forward style=solid]
 	-2 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-4 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	125 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	183 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	2336 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	16 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	356 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }

@@ -21,11 +21,8 @@ digraph svg {
 	}
 	{
 		rank=same
-		352 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
-		141 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		420 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		1735 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
@@ -37,16 +34,19 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-3 -> 352 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 352 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 352 [arrowhead=none color=black dir=forward style=solid]
-	352 -> 141 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 420 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 420 [arrowhead=none color=black dir=forward style=solid]
+	-1 -> 420 [arrowhead=none color=black dir=forward style=solid]
+	-8 -> 420 [arrowhead=none color=black dir=forward style=solid]
+	-8 -> 1735 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 1735 [arrowhead=none color=black dir=forward style=solid]
+	-1 -> 1735 [arrowhead=none color=black dir=forward style=solid]
 	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-2 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-4 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	141 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	420 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	1735 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }

@@ -100,7 +100,7 @@ class Neuroevolution:
         visualize.plot_stats(self.stats, plot_stats_save_file, ylog=False, show=self.show)
 
         # plot pareto front
-        if len(self.objectives) > 1:
+        if len(self.objectives) > 1 and "modularity" not in self.objectives:
             checkpoints = load_checkpoints(self.checkpoint_path)
             plot_pareto_front_file = os.path.join(self.results_plot_path, f"pareto_front.pdf")
 

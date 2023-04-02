@@ -21,9 +21,7 @@ digraph svg {
 	}
 	{
 		rank=same
-		7848 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		4220 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		2415 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		291 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
@@ -35,15 +33,16 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-8 -> 7848 [arrowhead=none color=black dir=forward style=solid]
-	-7 -> 4220 [arrowhead=none color=black dir=forward style=solid]
-	-5 -> 2415 [arrowhead=none color=black dir=forward style=solid]
+	-2 -> 291 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 291 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 291 [arrowhead=none color=black dir=forward style=solid]
+	-8 -> 291 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 291 [arrowhead=none color=black dir=forward style=solid]
 	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-2 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-4 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	2415 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	4220 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	7848 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	291 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }

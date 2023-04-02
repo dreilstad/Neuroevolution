@@ -21,12 +21,8 @@ digraph svg {
 	}
 	{
 		rank=same
-		49 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-		53 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
-	}
-	{
-		rank=same
-		115 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		321 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		506 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
@@ -38,18 +34,17 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-7 -> 49 [arrowhead=none color=black dir=forward style=solid]
-	-4 -> 53 [arrowhead=none color=black dir=forward style=solid]
-	-2 -> 53 [arrowhead=none color=black dir=forward style=solid]
-	49 -> 115 [arrowhead=none color=black dir=forward style=solid]
-	-6 -> 115 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 115 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 321 [arrowhead=none color=black dir=forward style=solid]
+	-7 -> 321 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 321 [arrowhead=none color=black dir=forward style=solid]
+	-2 -> 506 [arrowhead=none color=black dir=forward style=solid]
+	-1 -> 506 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 506 [arrowhead=none color=black dir=forward style=solid]
 	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-2 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	53 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	115 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	321 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	506 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }

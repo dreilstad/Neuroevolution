@@ -21,11 +21,12 @@ digraph svg {
 	}
 	{
 		rank=same
-		130 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		120 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		3464 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
-		2612 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		65 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
 	}
 	{
 		rank=same
@@ -37,18 +38,17 @@ digraph svg {
 	-4 -> -3 [arrowhead=none color=white style=invisible]
 	-3 -> -2 [arrowhead=none color=white style=invisible]
 	-2 -> -1 [arrowhead=none color=white style=invisible]
-	-4 -> 130 [arrowhead=none color=black dir=forward style=solid]
-	-1 -> 130 [arrowhead=none color=black dir=forward style=solid]
-	-2 -> 130 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 130 [arrowhead=none color=black dir=forward style=solid]
-	-3 -> 130 [arrowhead=none color=black dir=forward style=solid]
-	130 -> 2612 [arrowhead=none color=black dir=forward style=solid]
+	-7 -> 120 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 120 [arrowhead=none color=black dir=forward style=solid]
+	-7 -> 3464 [arrowhead=none color=black dir=forward style=solid]
+	-8 -> 65 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 65 [arrowhead=none color=black dir=forward style=solid]
+	3464 -> 65 [arrowhead=none color=black dir=forward style=solid]
 	-1 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-2 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-3 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-5 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 0 [arrowhead=none color=black dir=forward style=solid]
 	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-7 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
-	2612 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	65 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	120 -> 0 [arrowhead=none color=black dir=forward style=solid]
 }
