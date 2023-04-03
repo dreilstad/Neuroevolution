@@ -1,0 +1,71 @@
+digraph svg {
+	graph [nodesep=0.1 ranksep=0.75]
+	node [fontsize=9 height=0.2 shape=circle width=0.2]
+	{
+		rank=same
+		-8 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		-7 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		-6 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		-5 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		-4 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		-3 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		-2 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		-1 [fillcolor="#FFB000" fixedsize=true height=0.25 label="" style=filled width=0.25]
+	}
+	{
+		rank=same
+		0 [fillcolor="#DC267F" fixedsize=true height=0.25 label="" style=filled width=0.25]
+	}
+	{
+		rank=same
+	}
+	{
+		rank=same
+		6690 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		3980 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		1052 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		87 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+	}
+	{
+		rank=same
+		208 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+		266 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+	}
+	{
+		rank=same
+		68 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+	}
+	{
+		rank=same
+		13695 [fillcolor="#648FFF" fixedsize=true height=0.25 label="" style=filled width=0.25]
+	}
+	{
+		rank=same
+	}
+	-8 -> -7 [arrowhead=none color=white style=invisible]
+	-7 -> -6 [arrowhead=none color=white style=invisible]
+	-6 -> -5 [arrowhead=none color=white style=invisible]
+	-5 -> -4 [arrowhead=none color=white style=invisible]
+	-4 -> -3 [arrowhead=none color=white style=invisible]
+	-3 -> -2 [arrowhead=none color=white style=invisible]
+	-2 -> -1 [arrowhead=none color=white style=invisible]
+	-2 -> 6690 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 6690 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 3980 [arrowhead=none color=black dir=forward style=solid]
+	-7 -> 3980 [arrowhead=none color=black dir=forward style=solid]
+	-4 -> 1052 [arrowhead=none color=black dir=forward style=solid]
+	-5 -> 87 [arrowhead=none color=black dir=forward style=solid]
+	-3 -> 87 [arrowhead=none color=black dir=forward style=solid]
+	-1 -> 87 [arrowhead=none color=black dir=forward style=solid]
+	6690 -> 208 [arrowhead=none color=black dir=forward style=solid]
+	1052 -> 266 [arrowhead=none color=black dir=forward style=solid]
+	6690 -> 266 [arrowhead=none color=black dir=forward style=solid]
+	208 -> 68 [arrowhead=none color=black dir=forward style=solid]
+	68 -> 13695 [arrowhead=none color=black dir=forward style=solid]
+	-6 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	-8 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	87 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	266 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	3980 -> 0 [arrowhead=none color=black dir=forward style=solid]
+	13695 -> 0 [arrowhead=none color=black dir=forward style=solid]
+}
