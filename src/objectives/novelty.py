@@ -62,7 +62,7 @@ class Novelty:
         print(f" - Number of behaviors added to archive = {self.num_added_to_archive}")
         print(f" - Number of evals since last archive update = {self.evals_since_archive_addition}")
 
-        self._update_archive_settings()
+        #self._update_archive_settings()
 
         # reset behavior dict
         self.behaviors = {}
