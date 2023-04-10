@@ -91,12 +91,12 @@ class AgentRecordStore:
         with open(file, 'rb') as dump_file:
             self.records = pickle.load(dump_file)
 
-    def dump(self, file):
+    def dump(self, file, sample_rate=1):
         """
         The function to dump records list to the specified file from this class.
         Arguments:
             file: The path to the file to hold data dump.
         """
         with open(file, 'wb') as dump_file:
-            pickle.dump(self.records, dump_file)
+            pickle.dump(self.records[0::sample_rate], dump_file)
     

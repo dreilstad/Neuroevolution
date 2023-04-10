@@ -60,7 +60,7 @@ class Neuroevolution:
         # save record store data
         if self.domain == "mazerobot-medium" or self.domain == "mazerobot-hard":
             record_store_save_file = os.path.join(self.results_data_path, "agent_record_data.pickle")
-            self.simulator.history.dump(record_store_save_file)
+            self.simulator.history.dump(record_store_save_file, sample_rate=10)
             if "beh_div" in self.objectives:
                 archive_save_file = os.path.join(self.results_data_path, "archive_data.pickle")
                 self.simulator.novelty.write_archive_to_file(archive_save_file)

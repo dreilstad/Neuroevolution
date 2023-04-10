@@ -17,7 +17,7 @@ class Novelty:
                               "retina-hard": 0.85,
                               "bipedal": 0.7,
                               "mazerobot-medium": 10.0,
-                              "mazerobot-hard": 10.0,
+                              "mazerobot-hard": 12.0,
                               "tartarus": 0.5,
                               "tartarus-deceptive": 0.5}
         self.threshold = initial_thresholds[domain]
@@ -46,11 +46,11 @@ class Novelty:
         # calculate distances against archive behaviors
         for genome_id, behavior in self.behaviors.items():
             distances_archive = self.distance_to_archive(behavior)
-            distances_pop = self.distance_to_current_pop(behavior)
-            distances = np.concatenate((distances_archive, distances_pop))
+            #distances_pop = self.distance_to_current_pop(behavior)
+            #distances = np.concatenate((distances_archive, distances_pop))
 
             # sort list of distances to get the k nearest neighbors
-            nearest_neighbors = sorted(distances)[:self.k]
+            nearest_neighbors = sorted(distances_archive)[:self.k]
 
             # calculate novelty and assign score
             novelty = np.mean(nearest_neighbors)
