@@ -17,7 +17,7 @@ class Novelty:
                               "retina-hard": 0.85,
                               "bipedal": 0.7,
                               "mazerobot-medium": 10.0,
-                              "mazerobot-hard": 12.0,
+                              "mazerobot-hard": 6.0,
                               "tartarus": 0.5,
                               "tartarus-deceptive": 0.5}
         self.threshold = initial_thresholds[domain]
@@ -62,7 +62,7 @@ class Novelty:
         print(f" - Number of behaviors added to archive = {self.num_added_to_archive}")
         print(f" - Number of evals since last archive update = {self.evals_since_archive_addition}")
 
-        self._update_archive_settings()
+        #self._update_archive_settings()
 
         # reset behavior dict
         self.behaviors = {}
