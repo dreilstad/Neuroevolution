@@ -4,20 +4,21 @@ import numpy as np
 
 
 def generate_configurations(N, K, sample=0):
+    # generate possible configs, find and remove partially solvable configs
     box_configs = generate_all_possible_configurations(N - 2, K)
     invalid_config_indices = find_invalid_configuration_indices(box_configs)
     valid_configs = remove_invalid_configurations(box_configs, invalid_config_indices)
 
     complete_configs = generate_complete_configurations(valid_configs, N, K)
 
-    test_config = choice(complete_configs)
-    agent_pos = _get_random_agent_position_in_config(test_config, N)
-    agent_dir = np.random.randint(0, 4)
-
+    # sample k board configurations, if not use all fully solvable configs
     if sample > 0:
         complete_configs = choices(complete_configs, k=sample)
 
-    return complete_configs, test_config, agent_pos, agent_dir
+    # generate the initial agent state for every config, both agent position and orientation
+    initial_agent_state = generate_initial_agent_state_for_configs(complete_configs, N)
+
+    return complete_configs, initial_agent_state
 
 
 def generate_complete_configurations(configurations, N, K):
@@ -93,6 +94,15 @@ def match_pattern(A, BLKSZ):
     # Get all actual indices & index into input array for final output
     return np.take(A, start_idx.ravel()[:, None] + offset_idx.ravel())
 
+
+def generate_initial_agent_state_for_configs(configs, N):
+    initial_agent_state = []
+    for config in configs:
+        agent_pos = _get_random_agent_position_in_config(config, N)
+        agent_dir = np.random.randint(0, 4)
+        initial_agent_state.append((agent_pos, agent_dir))
+
+    return initial_agent_state
 
 def _get_random_agent_position_in_config(config, N):
 

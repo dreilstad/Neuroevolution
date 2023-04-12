@@ -10,7 +10,7 @@ class BipedalWalkerSimulator(Simulator):
         self.env = gym.make("BipedalWalker-v3")
         self.env.reset()
         self.initial_hull_position = tuple(self.env.hull.position)
-        self.behavioral_sample_rate = 4
+        self.behavioral_sample_rate = 16
 
         self.use_input_nodes_in_mod_div = True
         # 24 input nodes
@@ -20,8 +20,8 @@ class BipedalWalkerSimulator(Simulator):
                         -5.0, 0.0, -np.pi, -5.0, -np.pi, -5.0, 0.0] + [-1.0] * 10).astype(np.float32)
         high = np.array([np.pi, 5.0, 5.0, 5.0, np.pi, 5.0, np.pi,
                          5.0, 1.0, np.pi, 5.0, np.pi, 5.0, 1.0] + [1.0] * 10).astype(np.float32)
-        #self.input_value_range = list(zip(low, high))
-        self.input_value_range = list(zip([0.0, 0.0], [1.0, 1.0]))
+        self.input_value_range = list(zip(low, high))
+
         low = np.array([-1.0] * 4).astype(np.float32)
         high = np.array([1.0] * 4).astype(np.float32)
         self.output_value_range = list(zip(low, high))
@@ -52,8 +52,6 @@ class BipedalWalkerSimulator(Simulator):
 
             # step
             state, reward, terminated, truncated, info = self.env.step(action)
-            state = [state[8], state[13]]
-            #print(state)
             task_performance += reward
 
             # activate

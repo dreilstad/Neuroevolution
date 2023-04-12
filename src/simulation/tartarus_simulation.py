@@ -9,11 +9,9 @@ class TartarusSimulator(Simulator):
     def __init__(self, objectives, domain, N=6, K=6):
         super().__init__(objectives, domain)
 
-        config, test_config, pos, direction = generate_configurations(N, K, sample=10)
-        self.configurations = config
-        self.test_config = test_config
-        self.agent_pos = pos
-        self.agent_dir = direction
+        configs, agent_states = generate_configurations(N, K, sample=20)
+        self.configurations = configs
+        self.initial_agent_states = agent_states
 
         self.environment_cls = TartarusEnvironment
         self.use_input_nodes_in_mod_div = True
@@ -35,9 +33,15 @@ class TartarusSimulator(Simulator):
         if self.hamming is not None:
             sequence = []
 
+        behavior = None
+        if self.novelty is not None:
+            behavior = []
+
         task_performance = 0.0
-        for i, configuration in enumerate(self.configurations):
-            env = self.environment_cls(configuration)
+        for configuration, (agent_pos, agent_dir) in zip(self.configurations, self.initial_agent_states):
+            env = self.environment_cls(configuration,
+                                       fixed_agent_pos=agent_pos,
+                                       fixed_agent_dir=agent_dir)
             state, _ = env.reset()
             state = np.concatenate((state, [0, 0, 0]))
 
@@ -68,11 +72,14 @@ class TartarusSimulator(Simulator):
                 output_one_hot[action] = 1
                 state = np.concatenate((state, output_one_hot))
 
+            if self.novelty is not None:
+                behavior.append(env.get_final_block_positions_vector())
+
             task_performance += env.state_evaluation()
 
         task_performance = task_performance / len(self.configurations)
 
-        novelty = self._get_novelty_characteristic(neural_network) if self.novelty is not None else None
+        novelty = behavior if self.novelty is not None else None
 
         # store Q-score if using modularity objective
         q_score = self.mod(neural_network.all_nodes, neural_network.all_connections) if self.mod is not None else 0.0
@@ -85,39 +92,15 @@ class TartarusSimulator(Simulator):
                 "Q": q_score}
 
     def _get_novelty_characteristic(self, neural_network):
-
-        env = self.environment_cls(self.test_config,
-                                   fixed_agent_pos=self.agent_pos,
-                                   fixed_agent_dir=self.agent_dir)
-        state, _ = env.reset()
-        state = np.concatenate((state, [0, 0, 0]))
-
-        terminated = False
-        truncated = False
-        while (not terminated) and (not truncated):
-
-            # activate network and get next action
-            output, activations = neural_network.activate(state)
-            action = np.argmax(output)
-
-            # step
-            state, _, terminated, truncated, _ = env.step(action)
-
-            # one-hot encode network output to use as input next iteration
-            output_one_hot = [0, 0, 0]
-            output_one_hot[action] = 1
-            state = np.concatenate((state, output_one_hot))
-
-        tartarus_state = env.encode_tartarus_state()
-
-        return list(tartarus_state.ravel())
+        pass
 
 
 class DeceptiveTartarusSimulator(TartarusSimulator):
 
-    def __init__(self, objectives, N=6, K=6):
+    def __init__(self, objectives, domain, N=6, K=6):
         super().__init__(
             objectives=objectives,
+            domain=domain,
             N=N,
             K=K
         )

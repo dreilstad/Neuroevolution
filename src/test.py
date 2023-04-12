@@ -1,10 +1,13 @@
 from simulation.environments.tartarus.tartarus_util import generate_configurations
+from simulation.environments.tartarus.tartarus_environment import TartarusEnvironment
 
 config, agent = generate_configurations(6,6, sample=10)
 
 for c, a in zip(config, agent):
     print(c)
-    print(a)
+    env = TartarusEnvironment(c, fixed_agent_pos=a[0], fixed_agent_dir=[1])
+    env.reset()
+    print(env.encode_tartarus_state())
     print()
 
 """

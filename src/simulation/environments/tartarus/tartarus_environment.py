@@ -27,6 +27,8 @@ class TartarusEnvironment(MiniGridEnv):
             render_mode="rgb_array"
         )
 
+        self.blocks = None
+
     def to_str(self):
         AGENT_DIR_TO_STR = {0: ">", 1: "V", 2: "<", 3: "^"}
 
@@ -43,19 +45,17 @@ class TartarusEnvironment(MiniGridEnv):
         # generate the walls around
         self.grid.wall_rect(0, 0, width, height)
 
+        self.blocks = []
         # place boxes
         boxes = []
         for i in range(1, self.N-1):
             for j in range(1, self.N-1):
                 if self.configuration[i][j] == 1:
-                    self.place_obj(
-                        obj=Box("brown"),
-                        top=(j+1, i+1),
-                        size=(1, 1)
-                    )
-                    boxes.append((i, j))
+                    box = Box("brown")
+                    self.put_obj(obj=box, i=j+1, j=i+1)
 
-        #print("Finished placing boxes")
+                    boxes.append((i, j))
+                    self.blocks.append(box)
 
         # if not using fixed agent, use random position and direction
         if self.fixed_agent_pos is None:
@@ -77,8 +77,6 @@ class TartarusEnvironment(MiniGridEnv):
             )
             self.agent_dir = self.fixed_agent_dir
 
-        #print("Finished placing agent")
-
         return
 
     @staticmethod
@@ -86,7 +84,6 @@ class TartarusEnvironment(MiniGridEnv):
         return "Solve the Tartarus Problem"
 
     def gen_obs(self):
-        obs = np.zeros((3,3), dtype="int8")
         grid = self.encode_tartarus_state_with_walls()
         y, x = self.agent_pos
         obs = grid[x-1:x+2, y-1:y+2]
@@ -140,29 +137,6 @@ class TartarusEnvironment(MiniGridEnv):
 
         return performance_score
 
-    def improved_state_evaluation(self):
-        """
-        Compute proposed improved state evaluation
-        """
-
-        sum_distance_to_edge = 0.0
-        for i in range(self.grid.width):
-            for j in range(self.grid.height):
-                cell = self.grid.get(i,j)
-                if cell is not None and cell.type == "box":
-                    sum_distance_to_edge += self.min_dist_to_edge(i, j)
-
-        performance_score = self.C1 * (self.K - (2/self.N) * sum_distance_to_edge - self.C2)
-        return performance_score
-
-    def min_dist_to_edge(self, x, y):
-        left_dist = np.sqrt((y - 1)**2)
-        right_dist = np.sqrt((y - self.N)**2)
-        up_dist = np.sqrt((x - 1)**2)
-        down_dist = np.sqrt((x - self.N)**2)
-
-        return min(left_dist, right_dist, up_dist, down_dist)
-
     def encode_tartarus_state(self):
         tartarus_state = np.zeros((self.N, self.N))
 
@@ -175,17 +149,27 @@ class TartarusEnvironment(MiniGridEnv):
         return tartarus_state
 
     def encode_tartarus_state_with_walls(self):
+        pos_of_blocks = [b.cur_pos for b in self.blocks]
+
         tartarus_state = np.zeros((self.height, self.width))
 
-        for i in range(self.width):
-            for j in range(self.height):
-                cell = self.grid.get(i, j)
-                if cell is not None and cell.type == "box":
-                    tartarus_state[j][i] = 1
-                elif cell is not None and cell.type == "wall":
-                    tartarus_state[j][i] = -1
+        # set blocks
+        for pos in pos_of_blocks:
+            tartarus_state[pos[1]][pos[0]] = 1
+
+        # set walls at edges
+        tartarus_state[0,:] = -1
+        tartarus_state[-1,:] = -1
+        tartarus_state[:,0] = -1
+        tartarus_state[:,-1] = -1
 
         return tartarus_state
+
+    def get_final_block_positions_vector(self):
+        standard_pos_coords = [(block.cur_pos[1]-1, block.cur_pos[0]-1) for block in self.blocks]
+        unraveled_pos_coords = [index for pos in standard_pos_coords for index in pos]
+
+        return unraveled_pos_coords
 
 
 class DeceptiveTartarusEnvironment(TartarusEnvironment):

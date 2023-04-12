@@ -12,14 +12,15 @@ class Novelty:
 
         self.k = k
         self.archive_seed_size = archive_seed_size
+        self.domain = domain
 
         initial_thresholds = {"retina": 0.85,
                               "retina-hard": 0.85,
-                              "bipedal": 25.0,
+                              "bipedal": 1000.0,
                               "mazerobot-medium": 10.0,
                               "mazerobot-hard": 6.0,
-                              "tartarus": 0.5,
-                              "tartarus-deceptive": 0.5}
+                              "tartarus": 1.2,
+                              "tartarus-deceptive": 1.2}
         self.threshold = initial_thresholds[domain]
 
         distances = {"retina": self.euclidean_distance,
@@ -30,7 +31,6 @@ class Novelty:
                      "tartarus": self.manhattan_distance,
                      "tartarus-deceptive": self.manhattan_distance}
         self.distance = distances[domain]
-
 
         self.num_added_to_archive = 0
         self.evals_since_archive_addition = 0
