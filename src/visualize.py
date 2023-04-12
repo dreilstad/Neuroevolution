@@ -1,9 +1,9 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
 import warnings
 import graphviz
 import argparse
-
-import matplotlib.pyplot as plt
-import numpy as np
 
 from simulation.environments.maze.agent import AgentRecordStore
 from simulation.environments.maze.maze_environment import read_environment
@@ -333,11 +333,11 @@ def _draw_maze_(maze_env, ax):
 
     # draw start point
     start_circle = plt.Circle((maze_env.agent.location.x, maze_env.agent.location.y),
-                              radius=4.0, facecolor="#1071e5", edgecolor='w')
+                              radius=3.0, facecolor="black", edgecolor='w')
     ax.add_patch(start_circle)
 
     # draw exit point
-    ax.scatter([maze_env.exit_point.x], [maze_env.exit_point.y], s=800, marker="*",
+    ax.scatter([maze_env.exit_point.x], [maze_env.exit_point.y], s=300, marker="*",
                facecolor="#e81313")
 
 

@@ -1,10 +1,33 @@
-from simulation.environments.tartarus.tartarus_environment import TartarusEnvironment
+from simulation.environments.tartarus.tartarus_util import generate_configurations
 
+config, agent = generate_configurations(6,6, sample=10)
 
-
-
+for c, a in zip(config, agent):
+    print(c)
+    print(a)
+    print()
 
 """
+import gymnasium as gym
+from pprint import pprint
+
+env = gym.make("BipedalWalker-v3")
+env.reset()
+
+pprint(tuple(env.hull.position))
+pprint(tuple(env.hull.worldCenter))
+
+pprint(vars(env))
+
+a = []
+for i in range(200):
+    if i % 4 == 0:
+        print(i)
+        a.append(i)
+
+print(len(a))
+
+
 print("START")
 from util import load_checkpoints
 func = load_checkpoints
