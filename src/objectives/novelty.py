@@ -5,14 +5,16 @@ from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
 
 class Novelty:
 
-    def __init__(self, domain, k=15, archive_seed_size=1):
+    def __init__(self, domain, k=15, archive_seed_size=1, max_archive_size=1000):
         self.archive = []
         self.behaviors = {}
         self.novelty = {}
 
         self.k = k
-        self.archive_seed_size = archive_seed_size
         self.domain = domain
+        self.archive_seed_size = archive_seed_size
+        self.max_archive_size = max_archive_size
+        self.replace_index_on_max = 0
 
         initial_thresholds = {"retina": 0.85,
                               "retina-hard": 0.85,
@@ -78,8 +80,15 @@ class Novelty:
         # add to archive if novelty greater than threshold or ,
         # otherwise check if novelty is larger than its nearest neighbor
         if novelty > self.threshold or len(self.archive) < self.archive_seed_size:
-            self.archive.append((behavior, novelty))
-            self.num_added_to_archive += 1
+            if len(self.archive) == self.max_archive_size:
+                self.archive[self.replace_index_on_max] = (behavior, novelty)
+                self.replace_index_on_max += 1
+                if self.replace_index_on_max == len(self.archive):
+                    self.replace_index_on_max = 0
+            else:
+                self.archive.append((behavior, novelty))
+                self.num_added_to_archive += 1
+
             self.evals_since_archive_addition = 0
         else:
             self.evals_since_archive_addition += 1
