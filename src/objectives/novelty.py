@@ -5,7 +5,7 @@ from simulation.environments.maze.agent import AgentRecordStore, AgentRecord
 
 class Novelty:
 
-    def __init__(self, domain, k=15, archive_seed_size=1, max_archive_size=1000):
+    def __init__(self, domain, k=15, archive_seed_size=1):
         self.archive = []
         self.behaviors = {}
         self.novelty = {}
@@ -13,8 +13,16 @@ class Novelty:
         self.k = k
         self.domain = domain
         self.archive_seed_size = archive_seed_size
-        self.max_archive_size = max_archive_size
         self.replace_index_on_max = 0
+
+        max_archive_sizes = {"retina": -1,
+                             "retina-hard": -1,
+                             "bipedal": -1,
+                             "mazerobot-medium": -1,
+                             "mazerobot-hard": -1,
+                             "tartarus": 500,
+                             "tartarus-deceptive": 500}
+        self.max_archive_size = max_archive_sizes[self.domain]
 
         initial_thresholds = {"retina": 0.85,
                               "retina-hard": 0.85,
