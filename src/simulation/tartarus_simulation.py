@@ -9,7 +9,7 @@ class TartarusSimulator(Simulator):
     def __init__(self, objectives, domain, N=6, K=6):
         super().__init__(objectives, domain)
 
-        configs, agent_states = generate_configurations(N, K, sample=20)
+        configs, agent_states = generate_configurations(N, K, sample=30)
         self.configurations = configs
         self.initial_agent_states = agent_states
 

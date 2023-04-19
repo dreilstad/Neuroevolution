@@ -17,7 +17,7 @@ class Novelty:
 
         max_archive_sizes = {"retina": -1,
                              "retina-hard": -1,
-                             "bipedal": -1,
+                             "bipedal": 500,
                              "mazerobot-medium": -1,
                              "mazerobot-hard": -1,
                              "tartarus": 500,
@@ -26,11 +26,11 @@ class Novelty:
 
         initial_thresholds = {"retina": 0.85,
                               "retina-hard": 0.85,
-                              "bipedal": 1000.0,
+                              "bipedal": 1500.0,
                               "mazerobot-medium": 10.0,
-                              "mazerobot-hard": 6.0,
-                              "tartarus": 1.2,
-                              "tartarus-deceptive": 1.2}
+                              "mazerobot-hard": 10.0,
+                              "tartarus": 2.0,
+                              "tartarus-deceptive": 2.0}
         self.threshold = initial_thresholds[domain]
 
         distances = {"retina": self.euclidean_distance,
