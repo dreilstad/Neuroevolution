@@ -92,4 +92,4 @@ class HardMazeSimulator(MazeSimulator):
         local_dir = os.path.dirname(os.path.realpath(__file__))
         maze_config_dir = os.path.join(local_dir, "environments/maze/hard_maze.txt")
         self.env = read_environment(maze_config_dir)
-        self.MAX_TIME_STEPS = 1200
+        self.MAX_TIME_STEPS = 400

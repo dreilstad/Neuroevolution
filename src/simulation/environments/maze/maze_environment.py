@@ -18,7 +18,7 @@ class MazeEnvironment:
     """
     This class encapsulates the maze simulation environment.
     """
-    def __init__(self, agent, walls, exit_point, exit_range=15.0):
+    def __init__(self, agent, walls, exit_point, exit_range=5.0):
         """
         Creates new maze environment with specified walls and exit point.
         Arguments:
