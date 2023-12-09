@@ -92,7 +92,7 @@ class DefaultNodeGene(BaseGene):
             d += 1.0
         if self.aggregation != other.aggregation:
             d += 1.0
-        return d * config.compatibility_weight_coefficient
+        return d * 0.5
 
 
 # TODO: Do an ablation study to determine whether the enabled setting is
@@ -113,5 +113,5 @@ class DefaultConnectionGene(BaseGene):
         d = abs(self.weight - other.weight)
         if self.enabled != other.enabled:
             d += 1.0
-        return d * config.compatibility_weight_coefficient
+        return d * 0.5
 

@@ -1,13 +1,23 @@
+import os
+import neat
 import numpy as np
 import matplotlib.pyplot as plt
-
+import matplotlib
+from matplotlib.path import Path
+import matplotlib.patches as patches
+import glob
 import warnings
 import graphviz
-import argparse
+import imageio
 
-from simulation.environments.maze.agent import AgentRecordStore
-from simulation.environments.maze.maze_environment import read_environment
+from simulation.bipedal_walker_simulation import BipedalWalkerSimulator
 
+preamble = [r'\usepackage[T1]{fontenc}',
+            r'\usepackage{amsmath}',
+            r'\usepackage{txfonts}',
+            r'\usepackage{textcomp}']
+matplotlib.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+matplotlib.rc('text.latex', preamble="\n".join(preamble))
 
 def plot_stats(statistics, filename, ylog=False, show=False):
     """ Plots the population's average and best fitness. """
@@ -91,6 +101,7 @@ def plot_pareto_2d_fronts(checkpoints, filename, domain, label0, label1, invert=
     plt.savefig(filename, format="pdf")
     plt.close()
 
+
 def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, invert=True, show=False):
     fitnesses = [[f.fitness for _, f in c.population.items()] for c in checkpoints]
 
@@ -142,6 +153,7 @@ def plot_pareto_2d(checkpoints, filename, domain, label0, label1, max0, max1, in
         plt.show()
 
     plt.close()
+
 
 def draw_net(net, filename, node_names={}, node_colors={}):
     """
@@ -244,140 +256,350 @@ def draw_net(net, filename, node_names={}, node_colors={}):
     return dot
 
 
-def draw_maze_records(maze_env, records, filename=None, archive=False,
-                      width=140, height=300, fig_height=7):
-    """
-    The function to draw maze with recorded agents positions.
-    Arguments:
-        maze_env:       The maze environment configuration.
-        records:        The records of solver agents collected during NEAT execution.
-        best_threshold: The minimal fitness of maze solving agent's species to be included into the best ones.
-        filename:       The name of file to store plot.
-        view:           The flag to indicate whether to view plot.
-        width:          The width of drawing in pixels
-        height:         The height of drawing in pixels
-        fig_height:      The plot figure height in inches
-    """
+def _get_aggregated_runtime_data(domain):
 
-    # initialize plotting
-    fig = plt.figure()
-    ax = plt.gca()
+    treatments = ["performance",
+                  "performance-beh_div", "performance-hamming",
+                  "performance-modularity", "performance-mod_div",
+                  "performance-rep_div_cka", "performance-rep_div_cca"]
 
-    fig_width = fig_height * (float(width) / float(height))
-    fig.set_size_inches(fig_width, fig_height)
+    local_dir = os.path.dirname(os.path.realpath(__file__))
 
-    ax.set_xlim(0, width)
-    ax.set_ylim(0, height)
-    ax.axis("equal")
+    treatment_data = {}
+    for treatment in treatments:
+        results_data_dir = os.path.join(local_dir, f"results/data/{domain}/{treatment}/*/")
+        results_data_run_dirs = glob.glob(results_data_dir)
 
-    if records is not None:
+        scores = []
+        for data_path in results_data_run_dirs:
 
-        cmap = plt.get_cmap("gnuplot2")
-        norm = plt.Normalize(records[0].generation + 1, records[-1].generation + 1)
+            file = f"avg_gen_time_{data_path[-4:-1]}.txt"
+            data_file = os.path.join(data_path, file)
 
-        if not archive:
-            cb = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap),
-                              ax=ax, fraction=0.02, pad=-0.00001)
+            with open(data_file, "r") as f:
+                last_line = f.readlines()[-1]
 
-            cb.set_label(label="Generation", size=20, weight="bold")
-            cb.ax.tick_params(labelsize=15)
+            value = float(last_line)
+            scores.append(value)
 
-        # draw species
-        _draw_species_(records=records, ax=ax, cmap=cmap, norm=norm, archive=archive)
+        print(treatment)
+        print(scores)
+        print()
+        mean = np.mean(scores)
+        error = np.std(scores)
 
-    # draw maze
-    _draw_maze_(maze_env, ax)
+        treatment_data[treatment] = [mean, error]
 
-    # turn off axis rendering
-    ax.axis('off')
-
-    # Invert Y axis to have coordinates origin at the top left
-    ax.invert_yaxis()
-
-    # Save figure to file
-    if filename is not None:
-        plt.savefig(filename + ".pdf", bbox_inches="tight")
-
-    plt.close()
+    print(treatment_data)
+    return treatment_data
 
 
-def _draw_species_(records, ax, cmap, norm, archive):
-    """
-    The function to draw specific species from the records with
-    particular color.
-    Arguments:
-        records:    The records of solver agents collected during NEAT execution.
-        sid:        The species ID
-        colors:     The colors table by species ID
-        ax:         The figure axis instance
-    """
-    for r in records:
-        if archive:
-            circle = plt.Circle((r.x, r.y), 0.5, facecolor="royalblue")
-        else:
-            circle = plt.Circle((r.x, r.y), 0.5, facecolor=cmap(norm(r.generation + 1)))
-        ax.add_patch(circle)
+def _get_aggregated_performance_data():
+
+    domains = ["retina", "retina-hard",
+               "tartarus", "tartarus-deceptive",
+               "mazerobot-medium", "mazerobot-hard",
+               "bipedal"]
+
+    treatments = ["performance",
+                  "performance-beh_div", "performance-hamming",
+                  "performance-modularity", "performance-mod_div",
+                  "performance-rep_div_cka", "performance-rep_div_cca"]
+
+    local_dir = os.path.dirname(os.path.realpath(__file__))
+
+    data = []
+    for domain in domains:
+        treatment_data = []
+        print(domain)
+        for treatment in treatments:
+            results_data_dir = os.path.join(local_dir, f"results/data/{domain}/{treatment}/*/")
+            results_data_run_dirs = glob.glob(results_data_dir)
+
+            scores = []
+            for data_path in results_data_run_dirs:
+
+                file = f"best_fitness_{data_path[-4:-1]}.dat"
+                data_file = os.path.join(data_path, file)
+
+                with open(data_file, "r") as f:
+                    last_line = f.readlines()[-1]
+
+                value = float(last_line.split()[-1])
+                scores.append(value)
+
+            median = np.median(scores)
+            if np.isnan(median):
+                median = 0.0
+
+            if domain == "tartarus" or domain == "tartarus-deceptive":
+                print(treatment)
+                print(f"- {max(scores)}")
+                print(f"- {results_data_run_dirs[np.argmax(scores)][-4:-1]}")
+
+            treatment_data.append(median)
+
+        data.append(treatment_data)
+
+    return data
 
 
-def _draw_maze_(maze_env, ax):
-    """
-    The function to draw maze environment
-    Arguments:
-        maze_env:   The maze environment configuration.
-        ax:         The figure axis instance
-    """
-    # draw maze walls
-    for wall in maze_env.walls:
-        line = plt.Line2D((wall.a.x, wall.b.x), (wall.a.y, wall.b.y), color="black", lw=1.5)
-        ax.add_line(line)
+def _get_aggregated_success_rate_data():
 
-    # draw start point
-    start_circle = plt.Circle((maze_env.agent.location.x, maze_env.agent.location.y),
-                              radius=3.0, facecolor="black", edgecolor='w')
-    ax.add_patch(start_circle)
+    domains = ["retina", "retina-hard",
+               "tartarus", "tartarus-deceptive",
+               "mazerobot-medium", "mazerobot-hard",
+               "bipedal"]
 
-    # draw exit point
-    ax.scatter([maze_env.exit_point.x], [maze_env.exit_point.y], s=300, marker="*",
-               facecolor="#e81313")
+    treatments = ["performance",
+                  "performance-beh_div", "performance-hamming",
+                  "performance-modularity", "performance-mod_div",
+                  "performance-rep_div_cka", "performance-rep_div_cca"]
+
+    success_criterion = {"retina": 1.0,
+                         "retina-hard": 1.0,
+                         "tartarus": 10.0,
+                         "tartarus-deceptive": 8.0,
+                         "mazerobot-medium": 1.0,
+                         "mazerobot-hard": 1.0,
+                         "bipedal": 300.0}
+
+    local_dir = os.path.dirname(os.path.realpath(__file__))
+
+    data = []
+    for domain in domains:
+        treatment_data = []
+        for treatment in treatments:
+            results_data_dir = os.path.join(local_dir, f"results/data/{domain}/{treatment}/*/")
+            results_data_run_dirs = glob.glob(results_data_dir)
+
+            max_score_reached = 0.0
+            for data_path in results_data_run_dirs:
+
+                file = f"best_fitness_{data_path[-4:-1]}.dat"
+                data_file = os.path.join(data_path, file)
+
+                with open(data_file, "r") as f:
+                    last_line = f.readlines()[-1]
+
+                value = float(last_line.split()[-1])
+
+                if value >= success_criterion[domain]:
+                    max_score_reached += 1.0
+
+            success_rate = 0.0
+            if len(results_data_run_dirs) > 0:
+                success_rate = max_score_reached / len(results_data_run_dirs)
+
+            treatment_data.append(success_rate)
+
+        data.append(treatment_data)
+
+    for domain, d in zip(domains, data):
+        print(domain)
+        print(d)
+        print()
+
+    return data
+
+
+def parallel_coordinates_plot(success_rate=False):
+
+    treatments = ["PA", "Novelty", "Hamming", "Mod", "ModDiv", "CKA", "CCA"]
+    ynames = ["Retina 2x2", "Retina 3x3", "Tartarus", "Deceptive-Tartarus",
+              "Medium-Maze", "Hard-Maze", "Bipedal-Walker"]
+
+    if success_rate:
+        ys = _get_aggregated_success_rate_data()
+        ymins = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        ymaxs = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    else:
+        ys = _get_aggregated_performance_data()
+        ymins = np.array([0.89, 0.89, 4.0, 1.6, 0.85, 0.6, 200.0])
+        ymaxs = np.array([1.0, 1.0, 6.0, 2.4, 1.0, 1.0, 260.0])
+
+    # organize the data
+    dys = ymaxs - ymins
+    ymins -= dys * 0.05  # add 5% padding below and above
+    ymaxs += dys * 0.05
+    dys = ymaxs - ymins
+
+    ys = np.array(ys)
+    ys = ys.T
+    print(ys)
+    # transform all data to be compatible with the main axis
+    zs = np.zeros_like(ys)
+    zs[:, 0] = ys[:, 0]
+    zs[:, 1:] = (ys[:, 1:] - ymins[1:]) / dys[1:] * dys[0] + ymins[0]
+
+    fig, host = plt.subplots(figsize=(18, 8))
+
+    axes = [host] + [host.twinx() for i in range(ys.shape[1] - 1)]
+    for i, ax in enumerate(axes):
+        ax.set_ylim(ymins[i], ymaxs[i])
+        ax.spines['top'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        ax.tick_params(axis='both', which='major', labelsize=15)
+        if ax != host:
+            ax.spines['left'].set_visible(False)
+            ax.yaxis.set_ticks_position('right')
+            ax.spines["right"].set_position(("axes", i / (ys.shape[1] - 1)))
+
+    host.set_xlim(0, ys.shape[1] - 1)
+    host.set_xticks(range(ys.shape[1]))
+    host.set_xticklabels(ynames, fontsize=25)
+    host.spines['right'].set_visible(False)
+    host.xaxis.tick_top()
+
+    if success_rate:
+        host.set_title('Success rate', fontsize=35, pad=12)
+    else:
+        host.set_title('Median best performance', fontsize=35, pad=12)
+
+    colors = {"PA":"#ffe119",
+              "Novelty":"#4daf4a",
+              "Hamming":"#377eb8",
+              "Mod":"#984ea3",
+              "ModDiv":"#ff7f00",
+              "CKA":"#e41a1c",
+              "CCA":"#000000"}
+
+    linestyle = {"PA":(0, (5,10)),
+              "Novelty":"--",
+              "Hamming":"-.",
+              "Mod":":",
+              "ModDiv":"-",
+              "CKA":(0, (3,5,1,5)),
+              "CCA":(0, (1,5))}
+
+    legend_handles = [None for _ in treatments]
+    for j in range(ys.shape[0]):
+        print(treatments[j])
+        # create bezier curves
+        verts = list(zip([x for x in np.linspace(0, len(ys) - 1, len(ys) * 3 - 2, endpoint=True)],
+                         np.repeat(zs[j, :], 3)[1:-1]))
+        codes = [Path.MOVETO] + [Path.CURVE4 for _ in range(len(verts) - 1)]
+        path = Path(verts, codes)
+        patch = patches.PathPatch(path, facecolor='none',
+                                  lw=3, edgecolor=colors[treatments[j]])
+        legend_handles[j] = patch
+        host.add_patch(patch)
+
+    host.legend(legend_handles, treatments, fontsize=22,
+                loc='lower center', bbox_to_anchor=(0.5, -0.18),
+                ncol=len(treatments), fancybox=True, shadow=True)
+    plt.tight_layout()
+    if success_rate:
+        plt.savefig(f"results/plots/success_rate_all.pdf", dpi=300)
+    else:
+        plt.savefig(f"results/plots/median_final_performance_all.pdf", dpi=300)
+    plt.show()
+
+
+def barplot_runtime_overhead(treatments, domain):
+
+    # width of the bars
+
+    bar_width = 0.6
+
+    domain_labels = {"retina": "Retina 2x2",
+                     "retina-hard": "Retina 3x3",
+                     "bipedal": "Bipedal Walker",
+                     "tartarus": "Tartarus",
+                     "tartarus-deceptive": "Deceptive Tartarus",
+                     "mazerobot-medium": "Medium Maze",
+                     "mazerobot-hard": "Hard Maze"}
+
+    labels = {"performance":"PA",
+              "performance-beh_div":"Novelty",
+              "performance-hamming":"Hamming",
+              "performance-modularity":"Mod",
+              "performance-mod_div":"ModDiv",
+              "performance-rep_div_cka":"CKA",
+              "performance-rep_div_cca":"CCA"}
+
+    colors = {"PA":"#ffe119",
+              "Novelty":"#4daf4a",
+              "Hamming":"#377eb8",
+              "Mod":"#984ea3",
+              "ModDiv":"#ff7f00",
+              "CKA":"#e41a1c",
+              "CCA":"#000000"}
+
+    x = []
+    y = []
+    error = []
+    color = []
+    order = ["PA", "Novelty", "Hamming", "Mod", "ModDiv", "CKA", "CCA"]
+    for treatment in labels.keys():
+        x.append(labels[treatment])
+        y.append(treatments[treatment][0])
+        error.append(treatments[treatment][1])
+        color.append(colors[labels[treatment]])
+
+    fig, ax = plt.subplots()
+    fig.set_figheight(10)
+    fig.set_figwidth(18)
+
+    ax.bar(x, y,
+           width=bar_width,
+           color=color,
+           align="center",
+           alpha=0.8,
+           edgecolor='black',
+           yerr=error,
+           capsize=5,
+           label=order)
+
+    # general layout
+    ax.set_ylabel("Time per generation", fontsize=45)
+    ax.set_title(f"{domain_labels[domain]} - Computational run-time overhead", fontsize=45)
+    ax.tick_params(axis='both', which='both', labelsize=35)
+
+    # Show graphic
+    plt.tight_layout()
+    plt.savefig(f"results/runtimes/{domain}_runtime.pdf", dpi=300)
+    plt.show()
+
+
+def create_sequence(filename, frames, start_frame=30, nrows=2, ncols=6):
+    print(len(frames))
+
+    fig, axes = plt.subplots(figsize=(18, 6), ncols=ncols, nrows=nrows)
+    img_frames = frames[::8]
+    for ind, frame in enumerate(img_frames[start_frame:start_frame + (nrows * ncols)]):
+        axes.ravel()[ind].imshow(frame[100:303, :250])
+        axes.ravel()[ind].set_title(f"Frame {ind + 1}", fontsize=30)
+        axes.ravel()[ind].set_axis_off()
+
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+
+    with imageio.get_writer(filename[:-3] + "gif", mode='I') as writer:
+        for frame in frames[::8]:
+            writer.append_data(frame[100:303, :250])
+
+    plt.show()
+
+def visualize_bipedal_walker(treatment, run="000"):
+    local_dir = os.path.dirname(os.path.realpath(__file__))
+    checkpoint_dir = os.path.join(local_dir, f"checkpoints/bipedal/{treatment}/{run}/*.pickle")
+    checkpoint = glob.glob(checkpoint_dir)[0]
+
+    pop = neat.Checkpointer.restore_checkpoint(checkpoint)
+    neural_network = neat.nn.FeedForwardNetwork.create(pop.best_genome, pop.config)
+
+    sim = BipedalWalkerSimulator(["performance"], "bipedal")
+    frames = sim.visualize(neural_network)
+    create_sequence(f"bipedal_walker_{treatment}_{run}.png", frames)
 
 
 if __name__ == "__main__":
-
-    # read command line parameters
-    parser = argparse.ArgumentParser(description="The maze experiment visualizer.")
-    parser.add_argument('-m', '--maze', choices=["medium", "hard"], help='The maze configuration to use.')
-    parser.add_argument('-r', '--records', required=False, default=None, help='The records file.')
-    parser.add_argument('-o', '--output', required=False, default="output", help='The file to store the plot.')
-    parser.add_argument('-e', '--empty', action="store_true", help='Flag to indicate no records')
-    parser.add_argument('-a', '--archive', action="store_true", help='Flag to indicate archive records')
-
-    args = parser.parse_args()
-    print(args.maze)
-    print(args.records)
-    print(args.output)
-    print(args.empty)
-
-    # read maze environment
-    maze_config = f"/Users/didrik/Documents/Master/Neuroevolution/src/simulation/environments/maze/{args.maze}_maze.txt"
-    maze_env = read_environment(maze_config)
-
-    plot_params = {"medium": {"width": 300, "height": 140, "fig_height": 7},
-                   "hard": {"width": 205, "height": 205, "fig_height": 7}}
-    params = plot_params[args.maze]
-
-    # read agents records
-    records = None
-    if not args.empty:
-        if args.records is not None:
-            rs = AgentRecordStore()
-            rs.load(args.records)
-            records = rs.records
-
-    # render visualization
-    draw_maze_records(maze_env,
-                      records,
-                      filename=args.output,
-                      archive=args.archive,
-                      width=params["width"],
-                      height=params["height"],
-                      fig_height=params["fig_height"])
+    #_get_aggregated_performance_data()
+    #visualize_bipedal_walker("performance", run="000")
+    #visualize_bipedal_walker("performance-hamming", run="015")
+    visualize_bipedal_walker("performance-beh_div", run=str(np.random.randint(0, 50)).zfill(3))
+    #visualize_bipedal_walker("performance-modularity", run="041")
+    #visualize_bipedal_walker("performance-mod_div", run="034")
+    #visualize_bipedal_walker("performance-rep_div_cka", run="032")
+    #visualize_bipedal_walker("performance-rep_div_cca", run="022")

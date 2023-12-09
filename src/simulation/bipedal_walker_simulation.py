@@ -7,7 +7,7 @@ class BipedalWalkerSimulator(Simulator):
 
     def __init__(self, objectives, domain):
         super().__init__(objectives, domain)
-        self.env = gym.make("BipedalWalker-v3")
+        self.env = gym.make("BipedalWalker-v3", render_mode="rgb_array")
         self.env.reset()
         self.initial_hull_position = tuple(self.env.hull.position)
         self.behavioral_sample_rate = 16
@@ -84,6 +84,28 @@ class BipedalWalkerSimulator(Simulator):
                 "novelty": novelty,
                 "activations": all_activations,
                 "Q": q_score}
+
+    def visualize(self, neural_network):
+
+        terminated = False
+        truncated = False
+
+        self.env.reset(seed=1)
+        action = np.array([0.0, 0.0, 0.0, 0.0])
+
+        frames = []
+        while (not terminated) and (not truncated):
+
+            frame = self.env.render()
+            frames.append(frame)
+
+            # step
+            state, reward, terminated, truncated, info = self.env.step(action)
+
+            # activate
+            action, activations = neural_network.activate(state)
+
+        return frames
 
     def _get_novelty_characteristic(self, behavior):
         """ Behavior is defined as the sampled offset of

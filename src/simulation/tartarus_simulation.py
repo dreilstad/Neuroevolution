@@ -12,6 +12,8 @@ class TartarusSimulator(Simulator):
         configs, agent_states = generate_configurations(N, K, sample=30)
         self.configurations = configs
         self.initial_agent_states = agent_states
+        self.N = N
+        self.K = K
 
         self.environment_cls = TartarusEnvironment
         self.use_input_nodes_in_mod_div = True

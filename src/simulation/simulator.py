@@ -1,3 +1,4 @@
+import time
 import neat
 import numpy as np
 
@@ -35,6 +36,9 @@ class Simulator:
         # initialized when simulating Mazerobot
         self.history = None
 
+        # save runtime
+        self.runtimes = []
+
     def evaluate_genomes(self, genomes, config, generation):
 
         nodes_of_interest = config.genome_config.input_keys
@@ -52,6 +56,32 @@ class Simulator:
             self.assign_output(genome_id, simulation_output, generation)
 
         self.assign_fitness(genomes)
+
+    def test_runtime_of_evaluate_genomes(self, genomes, config, generation):
+
+        self.runtimes = []
+
+        nodes_of_interest = config.genome_config.input_keys
+        if not self.use_input_nodes_in_mod_div:
+            nodes_of_interest = config.genome_config.output_keys
+
+        start = time.time()
+
+        for genome_id, genome in genomes:
+            neural_network = neat.nn.FeedForwardNetwork.create(genome, config)
+            genome.fitness = neat.nsga2.NSGA2Fitness(*[0.0]*self.num_objectives)
+
+            simulation_output = self.simulate(neural_network)
+            simulation_output["nodes"] = config.genome_config.input_keys + list(genome.nodes)
+            simulation_output["edges"] = list(genome.connections)
+            simulation_output["nodes_of_interest"] = nodes_of_interest
+            self.assign_output(genome_id, simulation_output, generation)
+
+        self.assign_fitness(genomes)
+
+        end = time.time()
+        runtime = end - start
+        self.runtimes.append(runtime)
 
     def simulate(self, neural_network):
         raise NotImplementedError

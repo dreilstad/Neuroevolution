@@ -92,6 +92,14 @@ def load_checkpoints(folder):
     return checkpoints
 
 
+def load_last_checkpoint(folder):
+    checkpoint_path = os.path.join(folder, "*.pickle")
+    checkpoints = glob.glob(checkpoint_path)
+
+    latest_checkpoint = max(checkpoints, key=os.path.getctime)
+    return latest_checkpoint
+
+
 def make_new_run_folders(domain, objectives):
     local_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -129,3 +137,26 @@ def make_new_run_folder(dir_path):
         os.makedirs(new_run_dir)
 
     return new_run_dir
+
+
+def get_empty_run_folders(domain, objectives):
+    local_dir = os.path.dirname(os.path.realpath(__file__))
+    objectives_string = "-".join(objectives)
+
+    results_data_dir = os.path.join(local_dir, f"results/data/{domain}/{objectives_string}/*/")
+    results_plots_dir = os.path.join(local_dir, f"results/plots/{domain}/{objectives_string}/*/")
+    checkpoint_dir = os.path.join(local_dir, f"checkpoints/{domain}/{objectives_string}/*/")
+
+    results_data_run_dirs = glob.glob(results_data_dir)
+    results_plots_run_dirs = glob.glob(results_plots_dir)
+    checkpoint_run_dirs = glob.glob(checkpoint_dir)
+
+    unfinished_runs = []
+    for i in range(len(checkpoint_run_dirs)):
+        if len(os.listdir(results_data_run_dirs[i])) == 0:
+            unfinished_runs.append((results_data_run_dirs[i],
+                                    results_plots_run_dirs[i],
+                                    checkpoint_run_dirs[i]))
+
+    return unfinished_runs
+

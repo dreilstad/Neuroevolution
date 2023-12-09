@@ -80,13 +80,13 @@ class Neuroevolution:
                   "rep_div_cka": "Representational Diversity (Linear CKA)",
                   "rep_div_cca": "Representational Diversity (CCA)"}
 
-        domain_labels = {"retina": "Retina (2x2)",
-                         "retina-hard": "HardRetina (3x3)",
+        domain_labels = {"retina": "Retina 2x2",
+                         "retina-hard": "Retina 3x3",
                          "bipedal": "Bipedal Walker",
                          "tartarus": "Tartarus",
                          "tartarus-deceptive": "Deceptive Tartarus",
-                         "mazerobot-medium": "Maze navigation - Medium maze",
-                         "mazerobot-hard": "Maze navigation - Hard maze"}
+                         "mazerobot-medium": "Medium Maze",
+                         "mazerobot-hard": "Hard Maze"}
 
         print('\nBest genome:\n{!s}'.format(winner_genome))
         winner_net = neat.nn.FeedForwardNetwork.create(winner_genome, self.neat_config)
