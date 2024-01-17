@@ -1,2 +1,2 @@
 # Neuroevolution
-## Code used in Master thesis
+## Code used in the paper "Cultivating Diversity: A Comparison of Diversity Objectives in Neuroevolution"
